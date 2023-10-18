@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "airflow-tools"
+version = "0.1.0"
+description = ""
+authors = ["Biel Llobera <biel_llobera@dkl.digital>"]
+readme = "README.md"
+include = ["src/py.typed"]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.13"
+apache-airflow = ">=2.6.0,<2.7.0"
+toml = "^0.10.2"
+apache-airflow-providers-microsoft-azure = "^8.0.0"
+jmespath = "^1.0.1"
+pandas = "^2.1.1"
+
+[tool.poetry.plugins."apache_airflow_provider"]
+"provider_info" = "providers.package:get_provider_info"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.10.0"
+ruff = "^0.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
+
+[tool.black]
+skip-string-normalization = true
