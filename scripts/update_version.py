@@ -1,4 +1,5 @@
 from pathlib import Path
+
 import toml
 
 
@@ -15,7 +16,7 @@ def main():
     version_py_path = project_root / "src/providers/_version.py"
     version_py_content = f'__version__ = "{version}"\n'
     version_py_path.write_text(version_py_content)
-    print(f"Updated _version.py")
+    print("Updated _version.py")
 
 
 if __name__ == "__main__":

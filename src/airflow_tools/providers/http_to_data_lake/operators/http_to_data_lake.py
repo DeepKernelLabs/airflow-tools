@@ -1,15 +1,15 @@
 from io import BytesIO
 from typing import Any, Callable, Literal
-from airflow.models import BaseOperator
-from airflow.utils.context import Context
-from airflow.hooks.base import BaseHook
-from airflow.providers.http.operators.http import SimpleHttpOperator
+
 import jmespath
 import pandas as pd
+from airflow.hooks.base import BaseHook
+from airflow.models import BaseOperator
+from airflow.providers.http.operators.http import SimpleHttpOperator
+from airflow.utils.context import Context
 from pandas._typing import CompressionOptions
 
 from data_lake_facade import DataLakeFacade
-
 
 SaveFormat = Literal['jsonl']
 
@@ -57,16 +57,19 @@ class HttpToDataLake(BaseOperator):
             method=self.method,
             data=self.request_data,
             headers=self.headers,
-            response_filter=self._response_filter()
+            response_filter=self._response_filter(),
         ).execute(context)
 
         data_lake_facade.write(data, self.data_lake_path)
-    
+
     def _response_filter(self) -> Callable | None:
         if self.save_format == 'jsonl' and not self.jmespath_expression:
             return lambda response: list_to_jsonl(response.json(), self.compression)
         elif self.save_format == 'jsonl' and self.jmespath_expression:
-            return lambda response: list_to_jsonl(jmespath.search(self.jmespath_expression, response.json()), self.compression)
+            return lambda response: list_to_jsonl(
+                jmespath.search(self.jmespath_expression, response.json()),
+                self.compression,
+            )
         else:
             return None
 

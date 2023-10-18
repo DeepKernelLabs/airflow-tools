@@ -1,7 +1,7 @@
-from io import BytesIO
 import logging
-from airflow.providers.microsoft.azure.hooks.wasb import WasbHook
+from io import BytesIO
 
+from airflow.providers.microsoft.azure.hooks.wasb import WasbHook
 
 DataLakeConnection = WasbHook
 logger = logging.getLogger(__file__)
@@ -23,7 +23,9 @@ class DataLakeFacade:
 
                 if isinstance(data, bytes):
                     data = BytesIO(data)
-                logger.info(f'Writing to wasb container "{container_name}" and blob "{blob_name}"')
+                logger.info(
+                    f'Writing to wasb container "{container_name}" and blob "{blob_name}"'
+                )
                 self.conn.load_file(data, container_name, blob_name)
             case _:
                 raise NotImplementedError(

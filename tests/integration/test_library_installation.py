@@ -4,8 +4,8 @@ import venv
 
 import pytest
 
-
 logger = logging.getLogger(__file__)
+
 
 @pytest.fixture
 def virtual_environment(tmp_path):
@@ -34,19 +34,31 @@ def test_import_package(virtual_environment, project_path):
     # Test importing the package
     try:
         result = subprocess.check_output(
-            [f"{venv_path}/bin/python", "-c", f"from airflow.utils.entry_points import entry_points_with_dist; print(list(entry_points_with_dist('apache_airflow_provider')))"],
+            [
+                f"{venv_path}/bin/python",
+                "-c",
+                "from airflow.utils.entry_points import entry_points_with_dist; print(list(entry_points_with_dist('apache_airflow_provider')))",
+            ],
             universal_newlines=True,
             stderr=subprocess.STDOUT,
         )
         assert 'airflow_tools.providers.package:get_provider_info' in result
         result = subprocess.check_output(
-            [f"{venv_path}/bin/python", "-c", f"from airflow.providers_manager import ProvidersManager; pm = ProvidersManager(); print(pm.providers['airflow-tools'].data['package-name'])"],
+            [
+                f"{venv_path}/bin/python",
+                "-c",
+                "from airflow.providers_manager import ProvidersManager; pm = ProvidersManager(); print(pm.providers['airflow-tools'].data['package-name'])",
+            ],
             universal_newlines=True,
             stderr=subprocess.STDOUT,
         )
         assert 'airflow-tools' in result
         result = subprocess.check_output(
-            [f"{venv_path}/bin/python", "-c", f"from airflow_tools.providers.http_to_data_lake.operators.http_to_data_lake import HttpToDataLake; print('Import Ok')"],
+            [
+                f"{venv_path}/bin/python",
+                "-c",
+                "from airflow_tools.providers.http_to_data_lake.operators.http_to_data_lake import HttpToDataLake; print('Import Ok')",
+            ],
             universal_newlines=True,
             stderr=subprocess.STDOUT,
         )
