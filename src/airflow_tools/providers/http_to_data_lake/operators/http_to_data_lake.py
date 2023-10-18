@@ -9,7 +9,7 @@ from airflow.providers.http.operators.http import SimpleHttpOperator
 from airflow.utils.context import Context
 from pandas._typing import CompressionOptions
 
-from data_lake_facade import DataLakeFacade
+from airflow_tools.data_lake_facade import DataLakeFacade
 
 SaveFormat = Literal['jsonl']
 
