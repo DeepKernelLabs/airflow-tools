@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Biel Llobera <biel_llobera@dkl.digital>"]
 readme = "README.md"
-include = ["src/py.typed"]
+include = ["src/airflow_tools"]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
@@ -15,12 +15,16 @@ jmespath = "^1.0.1"
 pandas = "^2.1.1"
 
 [tool.poetry.plugins."apache_airflow_provider"]
-"provider_info" = "providers.package:get_provider_info"
+"provider_info" = "airflow_tools.providers.package:get_provider_info"
 
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.10.0"
 ruff = "^0.1.0"
+
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.2"
 
 [build-system]
 requires = ["poetry-core"]

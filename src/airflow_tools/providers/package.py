@@ -1,5 +1,5 @@
 from typing import Any, Dict
-from _version import __version__
+from airflow_tools._version import __version__
 
 
 def get_provider_info() -> Dict[str, Any]:
@@ -10,6 +10,6 @@ def get_provider_info() -> Dict[str, Any]:
         "description": "Apache Airflow Providers containing Operators, Sensors and tools for ELT",
         "versions": __version__,
         # Optional.
-        "hook-class-names": [],
+        "connection-types": [],
         "extra-links": [],
     }
