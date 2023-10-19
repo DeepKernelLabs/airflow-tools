@@ -28,12 +28,12 @@ class HttpToDataLake(BaseOperator):
         data_lake_conn_id: str,
         data_lake_path: str,
         save_format: SaveFormat = 'jsonl',
-        compression: CompressionOptions = None,
+        compression: 'CompressionOptions' = None,
         endpoint: str | None = None,
         method: str = "POST",
         data: Any = None,
         headers: dict[str, str] | None = None,
-        auth_type: type[AuthBase] | None = None,
+        auth_type: type['AuthBase'] | None = None,
         jmespath_expression: str | None = None,
         *args,
         **kwargs
@@ -51,7 +51,7 @@ class HttpToDataLake(BaseOperator):
         self.auth_type = auth_type
         self.jmespath_expression = jmespath_expression
 
-    def execute(self, context: Context) -> Any:
+    def execute(self, context: 'Context') -> Any:
         data_lake_facade = DataLakeFacade(
             conn=BaseHook.get_connection(self.data_lake_conn_id)
         )
@@ -80,7 +80,7 @@ class HttpToDataLake(BaseOperator):
             return None
 
 
-def list_to_jsonl(data: list[dict], compression: CompressionOptions) -> BytesIO:
+def list_to_jsonl(data: list[dict], compression: 'CompressionOptions') -> BytesIO:
     out = BytesIO()
     df = pd.DataFrame(data)
     df.to_json(out, orient='records', lines=True, compression=compression)
