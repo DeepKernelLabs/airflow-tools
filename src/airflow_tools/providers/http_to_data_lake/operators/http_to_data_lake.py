@@ -1,15 +1,18 @@
 from io import BytesIO
-from typing import Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
 import jmespath
 import pandas as pd
 from airflow.hooks.base import BaseHook
 from airflow.models import BaseOperator
 from airflow.providers.http.operators.http import SimpleHttpOperator
-from airflow.utils.context import Context
-from pandas._typing import CompressionOptions
 
 from airflow_tools.data_lake_facade import DataLakeFacade
+
+if TYPE_CHECKING:
+    from airflow.utils.context import Context
+    from pandas._typing import CompressionOptions
+    from requests.auth import AuthBase
 
 SaveFormat = Literal['jsonl']
 
@@ -30,6 +33,7 @@ class HttpToDataLake(BaseOperator):
         method: str = "POST",
         data: Any = None,
         headers: dict[str, str] | None = None,
+        auth_type: type[AuthBase] | None = None,
         jmespath_expression: str | None = None,
         *args,
         **kwargs
@@ -44,6 +48,7 @@ class HttpToDataLake(BaseOperator):
         self.method = method
         self.request_data = data
         self.headers = headers
+        self.auth_type = auth_type
         self.jmespath_expression = jmespath_expression
 
     def execute(self, context: Context) -> Any:
@@ -57,6 +62,7 @@ class HttpToDataLake(BaseOperator):
             method=self.method,
             data=self.request_data,
             headers=self.headers,
+            auth_type=self.auth_type,
             response_filter=self._response_filter(),
         ).execute(context)
 
