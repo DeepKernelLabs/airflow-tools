@@ -46,7 +46,7 @@ class HttpToDataLake(BaseOperator):
         self.compression = compression
         self.endpoint = endpoint
         self.method = method
-        self.request_data = data
+        self.data = data
         self.headers = headers
         self.auth_type = auth_type
         self.jmespath_expression = jmespath_expression
@@ -57,7 +57,7 @@ class HttpToDataLake(BaseOperator):
             http_conn_id=self.http_conn_id,
             endpoint=self.endpoint,
             method=self.method,
-            data=self.request_data,
+            data=self.data,
             headers=self.headers,
             auth_type=self.auth_type,
             response_filter=self._response_filter,

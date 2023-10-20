@@ -37,6 +37,8 @@ jobs:
       AWS_ACCESS_KEY_ID: AKIAIOSFODNN7EXAMPLE
       AWS_SECRET_ACCESS_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
       AWS_DEFAULT_REGION: us-east-1
+      TEST_BUCKET: data_lake
+      S3_ENDPOINT_URL: http://localhost:9090
 
     steps:
       - uses: actions/checkout@v4
