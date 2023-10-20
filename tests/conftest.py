@@ -16,3 +16,10 @@ def source_path(project_path) -> Path:
 @pytest.fixture
 def tests_path(project_path) -> Path:
     return project_path / 'tests'
+
+
+@pytest.fixture
+def load_airflow_test_config() -> Path:
+    from airflow.configuration import conf
+
+    conf.load_test_config()

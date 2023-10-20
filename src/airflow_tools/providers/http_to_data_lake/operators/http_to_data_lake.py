@@ -36,7 +36,7 @@ class HttpToDataLake(BaseOperator):
         auth_type: type['AuthBase'] | None = None,
         jmespath_expression: str | None = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.http_conn_id = http_conn_id
@@ -52,27 +52,36 @@ class HttpToDataLake(BaseOperator):
         self.jmespath_expression = jmespath_expression
 
     def execute(self, context: 'Context') -> Any:
-        data_lake_facade = DataLakeFacade(
-            conn=BaseHook.get_connection(self.data_lake_conn_id)
-        )
-
         data = SimpleHttpOperator(
+            task_id='simple-http-operator',
             http_conn_id=self.http_conn_id,
             endpoint=self.endpoint,
             method=self.method,
             data=self.request_data,
             headers=self.headers,
             auth_type=self.auth_type,
-            response_filter=self._response_filter(),
+            response_filter=self._response_filter,
         ).execute(context)
 
-        data_lake_facade.write(data, self.data_lake_path)
+        data_lake_conn = BaseHook.get_connection(self.data_lake_conn_id)
+        data_lake_facade = DataLakeFacade(
+            conn=data_lake_conn.get_hook(),
+        )
 
-    def _response_filter(self) -> Callable | None:
+        file_path = self.data_lake_path.rstrip('/') + '/' + self._file_name()
+        data_lake_facade.write(data, file_path)
+
+    def _file_name(self) -> str:
+        file_name = f'part0001.{self.save_format}'
+        if self.compression:
+            file_name += f'.{self.compression}'
+        return file_name
+
+    def _response_filter(self, response) -> Callable | None:
         if self.save_format == 'jsonl' and not self.jmespath_expression:
-            return lambda response: list_to_jsonl(response.json(), self.compression)
+            return list_to_jsonl(response.json(), self.compression)
         elif self.save_format == 'jsonl' and self.jmespath_expression:
-            return lambda response: list_to_jsonl(
+            return list_to_jsonl(
                 jmespath.search(self.jmespath_expression, response.json()),
                 self.compression,
             )
@@ -85,3 +94,4 @@ def list_to_jsonl(data: list[dict], compression: 'CompressionOptions') -> BytesI
     df = pd.DataFrame(data)
     df.to_json(out, orient='records', lines=True, compression=compression)
     out.seek(0)
+    return out
