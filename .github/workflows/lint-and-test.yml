@@ -31,10 +31,10 @@ jobs:
           initialBuckets: data_lake
         ports:
           - 9090:9090
-        options: --health-cmd "curl --fail http://localhost:9090/data_lake || exit 1" --health-interval 10s --health-timeout 60s --health-retries 5
+        options: --health-cmd "curl --fail http://s3mock:9090/data_lake || exit 1" --health-interval 10s --health-timeout 120s --health-retries 5
 
     env:
-      AIRFLOW_CONN_DATA_LAKE_TEST: '{"conn_type": "aws", "extra": {"endpoint_url": "http://localhost:9090"}}'
+      AIRFLOW_CONN_DATA_LAKE_TEST: '{"conn_type": "aws", "extra": {"endpoint_url": "http://s3mock:9090"}}'
 
     steps:
       - uses: actions/checkout@v4
