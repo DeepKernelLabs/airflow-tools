@@ -63,6 +63,9 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
+      - name: Initialize airflow
+        run: |
+          poetry run airflow db init
       - name: Run tests with pytest
         run: |
           poetry run pytest tests/ --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
