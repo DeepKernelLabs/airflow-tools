@@ -1,0 +1,55 @@
+name: Publish to GitHub Packages
+
+on:
+  push:
+    tags:
+      - 'v*'  # Tags follow the "v<semver>" format (e.g., v1.0.0)
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.10
+
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+
+    - name: Configure Poetry Auth
+      run: |
+        poetry config http-basic.dkl-airflow __token__ ${{ secrets.GH_PACKAGES_TOKEN }}
+        poetry config repositories.dkl-airflow https://upload.pkg.github.com/DeepKernelLabs/dkl-airflow
+
+    - name: Install dependencies
+      run: |
+        poetry install
+
+    - name: Extract version from tag
+      id: get_version
+      run: echo "::set-output name=VERSION::${GITHUB_REF#refs/tags/v}"
+
+    - name: Check version in pyproject.toml
+      run: |
+        VERSION_IN_FILE=$(poetry version | awk '{print $2}')
+        VERSION_IN_TAG="${{ steps.get_version.outputs.VERSION }}"
+
+        echo "Version in pyproject.toml: $VERSION_IN_FILE"
+        echo "Version in tag: $VERSION_IN_TAG"
+
+        if [ "$VERSION_IN_FILE" != "$VERSION_IN_TAG" ]; then
+          echo "Error: Version mismatch between tag and pyproject.toml"
+          exit 1
+        fi
+
+    - name: Build package
+      run: |
+        poetry build
+
+    - name: Publish package
+      run: |
+        poetry publish --repository dkl-airflow
