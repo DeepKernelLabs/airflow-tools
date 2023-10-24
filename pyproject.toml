@@ -13,6 +13,7 @@ toml = "^0.10.2"
 apache-airflow-providers-microsoft-azure = "^8.0.0"
 jmespath = "^1.0.1"
 pandas = "^2.1.1"
+apache-airflow-providers-amazon = "^8.8.0"
 
 [tool.poetry.plugins."apache_airflow_provider"]
 "provider_info" = "airflow_tools.providers.package:get_provider_info"
@@ -26,6 +27,10 @@ isort = "^5.12.0"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.2"
+pytest-cov = "^4.1.0"
+werkzeug = "<3.0.0"
+connexion = "^2.14.2"
+boto3 = "^1.28.67"
 
 [build-system]
 requires = ["poetry-core"]

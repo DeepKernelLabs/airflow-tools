@@ -1,0 +1,68 @@
+name: Python package
+
+on: [pull_request]
+
+jobs:
+  lint:
+    permissions:
+      checks: write
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: chartboost/ruff-action@v1
+        with:
+          args: --fix -e
+      - uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: ruff
+      - uses: tsuyoshicho/action-mypy@v3
+        with:
+          level: warning
+
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      s3mock:
+        image: adobe/s3mock:3.1.0
+        env:
+          initialBuckets: data_lake
+        ports:
+          - 9090:9090
+
+    env:
+      AIRFLOW_CONN_DATA_LAKE_TEST: '{"conn_type": "aws", "extra": {"endpoint_url": "http://localhost:9090"}}'
+      AWS_ACCESS_KEY_ID: AKIAIOSFODNN7EXAMPLE
+      AWS_SECRET_ACCESS_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      AWS_DEFAULT_REGION: us-east-1
+      TEST_BUCKET: data_lake
+      S3_ENDPOINT_URL: http://localhost:9090
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+      - name: Configure Poetry
+        run: |
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project false
+      - name: Set up cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry/virtualenvs
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+      - name: Install dependencies
+        run: |
+          poetry install
+      - name: Run tests with pytest
+        run: |
+          poetry run pytest tests/ --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html

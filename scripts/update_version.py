@@ -1,6 +1,10 @@
+import logging
+import sys
 from pathlib import Path
 
 import toml
+
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -13,10 +17,14 @@ def main():
     version = pyproject["tool"]["poetry"]["version"]
 
     # Write the current version to _version.py
-    version_py_path = project_root / "src/providers/_version.py"
+    version_py_path = project_root / "src/airflow_tools/_version.py"
     version_py_content = f'__version__ = "{version}"\n'
+    if version_py_path.read_text() == version_py_content:
+        logger.info('Version up to date. Skipping...')
+        sys.exit(0)
     version_py_path.write_text(version_py_content)
-    print("Updated _version.py")
+    logger.warning("Updated _version.py")
+    sys.exit(1)
 
 
 if __name__ == "__main__":

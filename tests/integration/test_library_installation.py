@@ -19,17 +19,16 @@ def virtual_environment(tmp_path):
     yield tmpdir
 
 
-def install_package(venv_path: str, package: str):
+def install_package(venv_path: str, package: str, cwd: str):
     """Install the package in the virtual environment."""
-    # Ensure you are in the project root where pyproject.toml is located
-    subprocess.check_call([f"{venv_path}/bin/pip", "install", package])
+    subprocess.check_call([f"{venv_path}/bin/pip", "install", package], cwd=cwd)
 
 
 def test_import_package(virtual_environment, project_path):
     """Test package import in the provided virtual environment."""
     venv_path = virtual_environment
     for package in [str(project_path)]:
-        install_package(venv_path, package)
+        install_package(venv_path, package, cwd=str(project_path))
 
     # Test importing the package
     try:
