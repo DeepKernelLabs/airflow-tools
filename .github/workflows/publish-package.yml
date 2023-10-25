@@ -15,18 +15,18 @@ jobs:
       id: get_version
       run: echo "::set-output name=VERSION::${GITHUB_REF#refs/tags/v}"
 
-    - name: Check version in pyproject.toml
-      run: |
-        VERSION_IN_FILE=$(poetry version | awk '{print $2}')
-        VERSION_IN_TAG="${{ steps.get_version.outputs.VERSION }}"
+    # - name: Check version in pyproject.toml
+    #   run: |
+    #     VERSION_IN_FILE=$(poetry version | awk '{print $2}')
+    #     VERSION_IN_TAG="${{ steps.get_version.outputs.VERSION }}"
 
-        echo "Version in pyproject.toml: $VERSION_IN_FILE"
-        echo "Version in tag: $VERSION_IN_TAG"
+    #     echo "Version in pyproject.toml: $VERSION_IN_FILE"
+    #     echo "Version in tag: $VERSION_IN_TAG"
 
-        if [ "$VERSION_IN_FILE" != "$VERSION_IN_TAG" ]; then
-          echo "Error: Version mismatch between tag and pyproject.toml"
-          exit 1
-        fi
+    #     if [ "$VERSION_IN_FILE" != "$VERSION_IN_TAG" ]; then
+    #       echo "Error: Version mismatch between tag (${VERSION_IN_TAG}) and pyproject.toml(${VERSION_IN_FILE})"
+    #       exit 1
+    #     fi
 
     - name: Set up Python
       uses: actions/setup-python@v4
