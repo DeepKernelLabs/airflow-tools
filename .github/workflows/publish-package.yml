@@ -9,12 +9,12 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.10
+        python-version: '3.10'
 
     - name: Install Poetry
       run: |
@@ -22,8 +22,8 @@ jobs:
 
     - name: Configure Poetry Auth
       run: |
-        poetry config http-basic.dkl-airflow __token__ ${{ secrets.GH_PACKAGES_TOKEN }}
-        poetry config repositories.dkl-airflow https://upload.pkg.github.com/DeepKernelLabs/dkl-airflow
+        poetry config http-basic.airflow-tools __token__ ${{ secrets.GH_PACKAGES_TOKEN }}
+        poetry config repositories.airflow-tools https://upload.pkg.github.com/DeepKernelLabs/airflow-tools
 
     - name: Install dependencies
       run: |
@@ -52,4 +52,4 @@ jobs:
 
     - name: Publish package
       run: |
-        poetry publish --repository dkl-airflow
+        poetry publish --repository airflow-tools
