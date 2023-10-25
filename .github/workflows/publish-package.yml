@@ -11,24 +11,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-
-    - name: Install Poetry
-      run: |
-        curl -sSL https://install.python-poetry.org | python3 -
-
-    - name: Configure Poetry Auth
-      run: |
-        poetry config http-basic.airflow-tools __token__ ${{ secrets.GH_PACKAGES_TOKEN }}
-        poetry config repositories.airflow-tools https://upload.pkg.github.com/DeepKernelLabs/airflow-tools
-
-    - name: Install dependencies
-      run: |
-        poetry install
-
     - name: Extract version from tag
       id: get_version
       run: echo "::set-output name=VERSION::${GITHUB_REF#refs/tags/v}"
@@ -46,10 +28,27 @@ jobs:
           exit 1
         fi
 
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+
+    - name: Authenticate with GitHub package repository
+      run: |
+        poetry config http-basic.airflow-tools "${{ github.actor }}" "${{ secrets.GITHUB_TOKEN }}"
+
+    - name: Install dependencies
+      run: |
+        poetry install
+
     - name: Build package
       run: |
         poetry build
 
-    - name: Publish package
+    - name: Publish the package to GitHub Package Repository
       run: |
-        poetry publish --repository airflow-tools
+        poetry publish --repository airflow-tools --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
