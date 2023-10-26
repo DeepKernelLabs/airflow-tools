@@ -37,9 +37,12 @@ jobs:
       run: |
         curl -sSL https://install.python-poetry.org | python3 -
 
-    - name: Authenticate with GitHub package repository
+    #- name: Authenticate with GitHub package repository
+    #  run: |
+    #    poetry config http-basic.airflow-tools "${{ github.actor }}" "${{ secrets.GITHUB_TOKEN }}"
+    - name: Add PyPI API token to Poetry
       run: |
-        poetry config http-basic.airflow-tools "${{ github.actor }}" "${{ secrets.GITHUB_TOKEN }}"
+        poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
 
     - name: Install dependencies
       run: |
@@ -49,6 +52,10 @@ jobs:
       run: |
         poetry build
 
-    - name: Publish the package to GitHub Package Repository
+    #- name: Publish the package to GitHub Package Repository
+    #  run: |
+    #    poetry publish --repository airflow-tools --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Publish the package to PyPI
       run: |
-        poetry publish --repository airflow-tools --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
+        poetry publish 
