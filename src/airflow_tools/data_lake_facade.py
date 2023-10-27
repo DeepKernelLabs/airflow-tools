@@ -20,17 +20,18 @@ class DataLakeFacade:
     def write(self, data: str | bytes | BytesIO, path: str):
         match self.conn.conn_type:
             case "wasb":
+                self.conn: WasbHook
                 container_name, blob_name = _get_container_and_blob_name(path)
                 if isinstance(data, str):
                     self.conn.load_string(data, container_name, blob_name)
                     return
 
-                if isinstance(data, bytes):
-                    data = BytesIO(data)
+                if isinstance(data, BytesIO):
+                    data = data.getvalue()
                 logger.info(
                     f'Writing to wasb container "{container_name}" and blob "{blob_name}"'
                 )
-                self.conn.load_file(data, container_name, blob_name)
+                self.conn.upload(container_name=container_name, blob_name=blob_name, data=data)
             case "aws":
                 self.conn: S3Hook
                 bucket_name, key_name = _get_bucket_and_key_name(path)
