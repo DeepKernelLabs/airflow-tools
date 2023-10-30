@@ -28,12 +28,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    parallel:
+    strategy:
       matrix:
-          - PYTHON_VERSION:
-              - '3.9'
-              - '3.10'
-              - '3.11'
+          - PYTHON_VERSION: ['3.9', '3.10', '3.11']
 
     services:
       s3mock:
@@ -53,10 +50,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python $PYTHON_VERSION
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: $PYTHON_VERSION
+          python-version: ${{ matrix.PYTHON_VERSION}}
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
