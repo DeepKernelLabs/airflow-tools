@@ -30,7 +30,7 @@ jobs:
 
     strategy:
       matrix:
-          - PYTHON_VERSION: ['3.9', '3.10', '3.11']
+        PYTHON_VERSION: ['3.9', '3.10', '3.11']
 
     services:
       s3mock:
