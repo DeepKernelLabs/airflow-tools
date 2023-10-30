@@ -28,11 +28,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    matrix:
-      - PYTHON_VERSION:
-          - '3.9'
-          - '3.10'
-          - '3.11'
+    parallel:
+      matrix:
+          - PYTHON_VERSION:
+              - '3.9'
+              - '3.10'
+              - '3.11'
 
     services:
       s3mock:
