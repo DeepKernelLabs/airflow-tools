@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 
@@ -5,6 +6,9 @@ import boto3
 import pendulum
 import pytest
 from airflow import DAG
+from airflow.hooks.base import BaseHook
+from airflow.models.dagrun import DagRun
+from airflow.utils.session import create_session
 
 
 @pytest.fixture
@@ -31,6 +35,9 @@ def load_airflow_test_config() -> Path:
 
 @pytest.fixture
 def dag(load_airflow_test_config):
+    with create_session() as session:
+        session.query(DagRun).filter(DagRun.dag_id == 'test-dag').delete()
+        session.commit()
     with DAG(
         dag_id='test-dag',
         schedule="@daily",
@@ -53,3 +60,18 @@ def s3_bucket(s3_resource):
 def s3_resource():
     endpoint_url = os.environ['S3_ENDPOINT_URL']
     return boto3.resource('s3', endpoint_url=endpoint_url)
+
+
+@pytest.fixture
+def sqlite_conn(tmp_path, monkeypatch):
+    db_path = (tmp_path / 'warehouse.db').absolute()
+    monkeypatch.setenv(
+        'AIRFLOW_CONN_DATA_WAREHOUSE_SQLITE',
+        json.dumps(
+            {
+                'conn_type': 'sqlite',
+                'host': str(db_path),
+            }
+        ),
+    )
+    yield BaseHook().get_connection(conn_id='data_warehouse_sqlite')

@@ -31,7 +31,9 @@ class DataLakeFacade:
                 logger.info(
                     f'Writing to wasb container "{container_name}" and blob "{blob_name}"'
                 )
-                self.conn.upload(container_name=container_name, blob_name=blob_name, data=data)
+                self.conn.upload(
+                    container_name=container_name, blob_name=blob_name, data=data
+                )
             case "aws":
                 self.conn: S3Hook
                 bucket_name, key_name = _get_bucket_and_key_name(path)
@@ -45,6 +47,41 @@ class DataLakeFacade:
                 raise NotImplementedError(
                     f"Data Lake type {self.conn.conn_type} does not support write"
                 )
+
+    def delete(self, path: str):
+        """Removes all data in a specific path"""
+        match self.conn.conn_type:
+            case "wasb":
+                self.conn: WasbHook
+                container_name, prefix = _get_container_and_blob_name(path)
+                blobs_to_delete = self.conn.get_blobs_list_recursive(
+                    container_name=container_name, prefix=prefix
+                )
+                self.conn.delete_blobs(
+                    container_name=container_name, blobs=blobs_to_delete
+                )
+            case "aws":
+                self.conn: S3Hook
+                bucket_name, prefix = _get_bucket_and_key_name(path)
+                s3_resource = self.conn.get_session().resource(
+                    "s3",
+                    endpoint_url=self.conn.conn_config.endpoint_url,
+                    config=self.conn.config,
+                    verify=self.conn.verify,
+                )
+                bucket = s3_resource.Bucket(bucket_name)
+                bucket.objects.filter(Prefix=prefix).delete()
+
+    def exists(self, path: str):
+        match self.conn.conn_type:
+            case "wasb":
+                self.conn: WasbHook
+                container_name, blob_name = _get_container_and_blob_name(path)
+                return self.conn.check_for_blob(container_name, blob_name)
+            case "aws":
+                self.conn: S3Hook
+                bucket_name, key_name = _get_bucket_and_key_name(path)
+                return self.conn.check_for_key(bucket_name=bucket_name, key=key_name)
 
 
 def _get_container_and_blob_name(path: str) -> tuple[str, str]:
