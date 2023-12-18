@@ -7,8 +7,8 @@ readme = "README.md"
 include = ["src/airflow_tools"]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.13"
-apache-airflow = ">=2.6.0,<=2.8"
+python = ">=3.9"
+apache-airflow = ">=2.6.0"
 toml = "^0.10.2"
 apache-airflow-providers-microsoft-azure = "^8.0.0"
 jmespath = "^1.0.1"
