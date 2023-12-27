@@ -4083,6 +4083,21 @@ test = ["hypothesis (>=6.46.1)", "pytest (>=7.3.2)", "pytest-xdist (>=2.2.0)"]
 xml = ["lxml (>=4.8.0)"]
 
 [[package]]
+name = "pandas-stubs"
+version = "2.1.4.231218"
+description = "Type annotations for pandas"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "pandas_stubs-2.1.4.231218-py3-none-any.whl", hash = "sha256:9c9a8db37b83ff4ff9f672644099abc624ed407aa46d9dcb5f305de9925b3d29"},
+    {file = "pandas_stubs-2.1.4.231218.tar.gz", hash = "sha256:f0dd07b3bb2935ddcff9c7b7ba9076cf3529b968a0dee96fab53f5f8747974f7"},
+]
+
+[package.dependencies]
+numpy = {version = ">=1.26.0", markers = "python_version < \"3.13\""}
+types-pytz = ">=2022.1.1"
+
+[[package]]
 name = "pathspec"
 version = "0.12.1"
 description = "Utility library for gitignore style pattern matching of file paths."
@@ -5313,6 +5328,28 @@ files = [
 ]
 
 [[package]]
+name = "types-jmespath"
+version = "1.0.2.7"
+description = "Typing stubs for jmespath"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-jmespath-1.0.2.7.tar.gz", hash = "sha256:d1d3ff9eff8a4abbb4f78e35a02c9efa5743b042d66d21414227c1a1978d71c8"},
+    {file = "types_jmespath-1.0.2.7-py3-none-any.whl", hash = "sha256:dfa091f4f4e54f2e74e5667c6ff1d300a24399b43707a3c44254438aa76f3729"},
+]
+
+[[package]]
+name = "types-pytz"
+version = "2023.3.1.1"
+description = "Typing stubs for pytz"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-pytz-2023.3.1.1.tar.gz", hash = "sha256:cc23d0192cd49c8f6bba44ee0c81e4586a8f30204970fc0894d209a6b08dab9a"},
+    {file = "types_pytz-2023.3.1.1-py3-none-any.whl", hash = "sha256:1999a123a3dc0e39a2ef6d19f3f8584211de9e6a77fe7a0259f04a524e90a5cf"},
+]
+
+[[package]]
 name = "types-s3transfer"
 version = "0.10.0"
 description = "Type annotations and code completion for s3transfer"
@@ -5321,6 +5358,17 @@ python-versions = ">=3.7,<4.0"
 files = [
     {file = "types_s3transfer-0.10.0-py3-none-any.whl", hash = "sha256:44fcdf0097b924a9aab1ee4baa1179081a9559ca62a88c807e2b256893ce688f"},
     {file = "types_s3transfer-0.10.0.tar.gz", hash = "sha256:35e4998c25df7f8985ad69dedc8e4860e8af3b43b7615e940d53c00d413bdc69"},
+]
+
+[[package]]
+name = "types-toml"
+version = "0.10.8.7"
+description = "Typing stubs for toml"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-toml-0.10.8.7.tar.gz", hash = "sha256:58b0781c681e671ff0b5c0319309910689f4ab40e8a2431e205d70c94bb6efb1"},
+    {file = "types_toml-0.10.8.7-py3-none-any.whl", hash = "sha256:61951da6ad410794c97bec035d59376ce1cbf4453dc9b6f90477e81e4442d631"},
 ]
 
 [[package]]
@@ -5653,4 +5701,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4.0"
-content-hash = "aa18125b5f91dc4975f8efb012bdbb345a8980ba1ed7d953e5e3ce73cdc11faa"
+content-hash = "630e3ce1d9f9174bcabd2c178713038ffa0ec94337789d2e7f5cec41123a7ad2"
