@@ -26,7 +26,7 @@ def tests_path(project_path) -> Path:
 def load_airflow_test_config() -> Path:
     from airflow.configuration import conf
 
-    conf.load_test_config()
+    return conf.load_test_config()
 
 
 @pytest.fixture
