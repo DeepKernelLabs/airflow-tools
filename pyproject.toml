@@ -1,19 +1,20 @@
 [tool.poetry]
 name = "airflow-tools"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Biel Llobera <biel_llobera@dkl.digital>"]
 readme = "README.md"
 include = ["src/airflow_tools"]
 
 [tool.poetry.dependencies]
-python = ">=3.9"
+python = ">=3.9,<4.0"
 apache-airflow = ">=2.6.0"
 toml = "^0.10.2"
 apache-airflow-providers-microsoft-azure = "^8.0.0"
 jmespath = "^1.0.1"
 pandas = "^2.1.1"
 apache-airflow-providers-amazon = "^8.8.0"
+pendulum = "^2.1.2"
 
 [tool.poetry.plugins."apache_airflow_provider"]
 "provider_info" = "airflow_tools.providers.package:get_provider_info"
