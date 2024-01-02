@@ -1,6 +1,7 @@
-from io import BytesIO
+from io import BytesIO, StringIO
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
+import json
 import jmespath
 import pandas as pd
 from airflow.hooks.base import BaseHook
@@ -78,20 +79,39 @@ class HttpToDataLake(BaseOperator):
         return file_name
 
     def _response_filter(self, response) -> Callable | None:
-        if self.save_format == 'jsonl' and not self.jmespath_expression:
-            return list_to_jsonl(response.json(), self.compression)
-        elif self.save_format == 'jsonl' and self.jmespath_expression:
-            return list_to_jsonl(
-                jmespath.search(self.jmespath_expression, response.json()),
-                self.compression,
-            )
-        else:
-            return None
+        match self.save_format:
+            case 'json':
+                if not self.jmespath_expression:
+                    self.data = response.json()
+                else:
+                    self.data = jmespath.search(self.jmespath_expression, response.json())
+                
+                return json_to_binary(self.data)
+            
+            case 'jsonl':
+                if not self.jmespath_expression:
+                    self.data = response.json()
+
+                else:
+                    self.data = jmespath.search(self.jmespath_expression, response.json())
+
+                assert type(self.data) == list, 'Expected response can\'t be transformed to jsonl. It is not  list[dict]'
+                return list_to_jsonl(self.data, self.compression)
+            
+            case _:
+                raise NotImplementedError(f'Unknown save_format: {self.save_format}')
+
 
 
 def list_to_jsonl(data: list[dict], compression: 'CompressionOptions') -> BytesIO:
     out = BytesIO()
     df = pd.DataFrame(data)
     df.to_json(out, orient='records', lines=True, compression=compression)
+    out.seek(0)
+    return out
+
+def json_to_binary(data: dict) -> BytesIO:
+    out = BytesIO()
+    out.write(json.dumps(data).encode())
     out.seek(0)
     return out
