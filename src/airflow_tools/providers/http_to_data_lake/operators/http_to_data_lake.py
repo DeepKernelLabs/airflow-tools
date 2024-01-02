@@ -1,12 +1,13 @@
 from io import BytesIO, StringIO
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
+
 import json
 import jmespath
 import pandas as pd
 from airflow.hooks.base import BaseHook
 from airflow.models import BaseOperator
-from airflow.providers.http.operators.http import SimpleHttpOperator
+from airflow.providers.http.operators.http import HttpOperator
 
 from airflow_tools.data_lake_facade import DataLakeFacade
 
@@ -20,8 +21,8 @@ SaveFormat = Literal['jsonl']
 
 class HttpToDataLake(BaseOperator):
     conn_type = 'http_to_data_lake'
-    template_fields = SimpleHttpOperator.template_fields + ('data_lake_path',)
-    template_fields_renderers = SimpleHttpOperator.template_fields_renderers
+    template_fields = HttpOperator.template_fields + ('data_lake_path',)
+    template_fields_renderers = HttpOperator.template_fields_renderers
 
     def __init__(
         self,
@@ -53,8 +54,8 @@ class HttpToDataLake(BaseOperator):
         self.jmespath_expression = jmespath_expression
 
     def execute(self, context: 'Context') -> Any:
-        data = SimpleHttpOperator(
-            task_id='simple-http-operator',
+        data = HttpOperator(
+            task_id='http-operator',
             http_conn_id=self.http_conn_id,
             endpoint=self.endpoint,
             method=self.method,
