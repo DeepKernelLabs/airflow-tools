@@ -1,5 +1,6 @@
+import json
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, Callable, Literal, Optional
+from typing import TYPE_CHECKING, Any, Literal
 
 import jmespath
 import pandas as pd
@@ -8,6 +9,7 @@ from airflow.models import BaseOperator
 from airflow.providers.http.operators.http import HttpOperator
 
 from airflow_tools.data_lake_facade import DataLakeFacade
+from airflow_tools.exceptions import ApiResponseTypeError
 
 if TYPE_CHECKING:
     from airflow.utils.context import Context
@@ -77,16 +79,35 @@ class HttpToDataLake(BaseOperator):
             file_name += f'.{self.compression}'
         return file_name
 
-    def _response_filter(self, response) -> Optional[Callable]:
-        if self.save_format == 'jsonl' and not self.jmespath_expression:
-            return list_to_jsonl(response.json(), self.compression)
-        elif self.save_format == 'jsonl' and self.jmespath_expression:
-            return list_to_jsonl(
-                jmespath.search(self.jmespath_expression, response.json()),
-                self.compression,
-            )
-        else:
-            return None
+    def _response_filter(self, response) -> BytesIO:
+        match self.save_format:
+            case 'json':
+                if not self.jmespath_expression:
+                    self.data = response.json()
+                else:
+                    self.data = jmespath.search(
+                        self.jmespath_expression, response.json()
+                    )
+
+                return json_to_binary(self.data)
+
+            case 'jsonl':
+                if not self.jmespath_expression:
+                    self.data = response.json()
+
+                else:
+                    self.data = jmespath.search(
+                        self.jmespath_expression, response.json()
+                    )
+
+                if not isinstance(self.data, list):
+                    raise ApiResponseTypeError(
+                        'Expected response can\'t be transformed to jsonl. It is not  list[dict]'
+                    )
+                return list_to_jsonl(self.data, self.compression)
+
+            case _:
+                raise NotImplementedError(f'Unknown save_format: {self.save_format}')
 
 
 def list_to_jsonl(data: list[dict], compression: 'CompressionOptions') -> BytesIO:
@@ -94,4 +115,9 @@ def list_to_jsonl(data: list[dict], compression: 'CompressionOptions') -> BytesI
     df = pd.DataFrame(data)
     df.to_json(out, orient='records', lines=True, compression=compression)
     out.seek(0)
+    return out
+
+
+def json_to_binary(data: dict) -> BytesIO:
+    out = BytesIO(json.dumps(data).encode())
     return out
