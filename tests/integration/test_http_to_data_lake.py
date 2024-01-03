@@ -43,8 +43,11 @@ def test_http_to_data_lake(dag, s3_bucket, s3_resource, monkeypatch):
 {"id":2,"email":"janet.weaver@reqres.in"}
 """
     )
-    
-def test_http_to_data_lake_response_format_jsonl_with_jmespath_expression(s3_bucket, monkeypatch):
+
+
+def test_http_to_data_lake_response_format_jsonl_with_jmespath_expression(
+    s3_bucket, monkeypatch
+):
     monkeypatch.setenv(
         'AIRFLOW_CONN_HTTP_TEST',
         json.dumps(
@@ -66,10 +69,10 @@ def test_http_to_data_lake_response_format_jsonl_with_jmespath_expression(s3_buc
     )
     response.execute("")
 
-    assert type(response.data) == list
+    assert isinstance(response.data, list)
     assert len(response.data) == 2
     assert 'id' in response.data[0] and 'email' in response.data[0]
-    
+
     response_origin_no_list = HttpToDataLake(
         task_id='test_http_to_data_lake',
         http_conn_id='http_test',
@@ -83,12 +86,17 @@ def test_http_to_data_lake_response_format_jsonl_with_jmespath_expression(s3_buc
     try:
         response_origin_no_list.execute("")
         assert False, 'This try should fail'
-    except Exception as assertion_exception:
-        assert type(assertion_exception) == AssertionError
-        assert str(assertion_exception) == 'Expected response can\'t be transformed to jsonl. It is not  list[dict]'
-        
-    
-def test_http_to_data_lake_response_format_jsonl_without_jmespath_expression(s3_bucket, monkeypatch):
+    except Exception as type_error_exception:
+        assert isinstance(type_error_exception, TypeError)
+        assert (
+            str(type_error_exception)
+            == 'Expected response can\'t be transformed to jsonl. It is not  list[dict]'
+        )
+
+
+def test_http_to_data_lake_response_format_jsonl_without_jmespath_expression(
+    s3_bucket, monkeypatch
+):
     # This is not a list without jmespath expression, so it should fail
     monkeypatch.setenv(
         'AIRFLOW_CONN_HTTP_TEST',
@@ -109,14 +117,17 @@ def test_http_to_data_lake_response_format_jsonl_without_jmespath_expression(s3_
         save_format='jsonl',
         jmespath_expression=None,
     )
-    
+
     try:
         response.execute("")
         assert False, 'This try should fail'
-    except Exception as assertion_exception:
-        assert type(assertion_exception) == AssertionError
-        assert str(assertion_exception) == 'Expected response can\'t be transformed to jsonl. It is not  list[dict]'
-        
+    except Exception as type_error_exception:
+        assert isinstance(type_error_exception, TypeError)
+        assert (
+            str(type_error_exception)
+            == 'Expected response can\'t be transformed to jsonl. It is not  list[dict]'
+        )
+
     # This is a list without requiring a jmespath expression, so it should pass
     monkeypatch.setenv(
         'AIRFLOW_CONN_HTTP_TEST_LIST',
@@ -138,11 +149,13 @@ def test_http_to_data_lake_response_format_jsonl_without_jmespath_expression(s3_
         jmespath_expression=None,
     )
     response_list.execute("")
-    
-    assert type(response_list.data) == list
+
+    assert isinstance(response_list.data, list)
 
 
-def test_http_to_data_lake_response_format_json_wit_jmespath_expression(s3_bucket, monkeypatch):
+def test_http_to_data_lake_response_format_json_wit_jmespath_expression(
+    s3_bucket, monkeypatch
+):
     monkeypatch.setenv(
         'AIRFLOW_CONN_HTTP_TEST',
         json.dumps(
@@ -163,12 +176,14 @@ def test_http_to_data_lake_response_format_json_wit_jmespath_expression(s3_bucke
         jmespath_expression='{page:page,total:total}',
     )
     response.execute("")
-    
-    assert type(response.data) == dict
+
+    assert isinstance(response.data, dict)
     assert response.data == {'page': 1, 'total': 12}
 
-  
-def test_http_to_data_lake_response_format_json_without_jmespath_expression(s3_bucket, monkeypatch):
+
+def test_http_to_data_lake_response_format_json_without_jmespath_expression(
+    s3_bucket, monkeypatch
+):
     monkeypatch.setenv(
         'AIRFLOW_CONN_HTTP_TEST',
         json.dumps(
@@ -189,10 +204,10 @@ def test_http_to_data_lake_response_format_json_without_jmespath_expression(s3_b
         jmespath_expression=None,
     )
     response.execute("")
-    
+
     assert True
-    
-  
+
+
 def test_http_to_data_lake_response_wrong_format(s3_bucket, monkeypatch):
     monkeypatch.setenv(
         'AIRFLOW_CONN_HTTP_TEST',
@@ -217,6 +232,5 @@ def test_http_to_data_lake_response_wrong_format(s3_bucket, monkeypatch):
         response.execute("")
         assert False, 'This try should fail'
     except Exception as not_implemented_exception:
-        assert type(not_implemented_exception) == NotImplementedError
+        assert isinstance(not_implemented_exception, NotImplementedError)
         assert str(not_implemented_exception) == 'Unknown save_format: wrong_format'
-   

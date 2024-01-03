@@ -1,8 +1,7 @@
-from io import BytesIO
-from typing import TYPE_CHECKING, Any, Callable, Literal
-
-
 import json
+from io import BytesIO
+from typing import TYPE_CHECKING, Any, Literal
+
 import jmespath
 import pandas as pd
 from airflow.hooks.base import BaseHook
@@ -79,29 +78,35 @@ class HttpToDataLake(BaseOperator):
             file_name += f'.{self.compression}'
         return file_name
 
-    def _response_filter(self, response) -> Callable | None:
+    def _response_filter(self, response) -> BytesIO | None:
         match self.save_format:
             case 'json':
                 if not self.jmespath_expression:
                     self.data = response.json()
                 else:
-                    self.data = jmespath.search(self.jmespath_expression, response.json())
-                
+                    self.data = jmespath.search(
+                        self.jmespath_expression, response.json()
+                    )
+
                 return json_to_binary(self.data)
-            
+
             case 'jsonl':
                 if not self.jmespath_expression:
                     self.data = response.json()
 
                 else:
-                    self.data = jmespath.search(self.jmespath_expression, response.json())
+                    self.data = jmespath.search(
+                        self.jmespath_expression, response.json()
+                    )
 
-                assert type(self.data) == list, 'Expected response can\'t be transformed to jsonl. It is not  list[dict]'
+                if not isinstance(self.data, list):
+                    raise TypeError(
+                        'Expected response can\'t be transformed to jsonl. It is not  list[dict]'
+                    )
                 return list_to_jsonl(self.data, self.compression)
-            
+
             case _:
                 raise NotImplementedError(f'Unknown save_format: {self.save_format}')
-
 
 
 def list_to_jsonl(data: list[dict], compression: 'CompressionOptions') -> BytesIO:
@@ -111,8 +116,7 @@ def list_to_jsonl(data: list[dict], compression: 'CompressionOptions') -> BytesI
     out.seek(0)
     return out
 
+
 def json_to_binary(data: dict) -> BytesIO:
-    out = BytesIO()
-    out.write(json.dumps(data).encode())
-    out.seek(0)
+    out = BytesIO(json.dumps(data).encode())
     return out
