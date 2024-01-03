@@ -9,6 +9,7 @@ from airflow.models import BaseOperator
 from airflow.providers.http.operators.http import HttpOperator
 
 from airflow_tools.data_lake_facade import DataLakeFacade
+from airflow_tools.exceptions import ApiResponseTypeError
 
 if TYPE_CHECKING:
     from airflow.utils.context import Context
@@ -100,7 +101,7 @@ class HttpToDataLake(BaseOperator):
                     )
 
                 if not isinstance(self.data, list):
-                    raise TypeError(
+                    raise ApiResponseTypeError(
                         'Expected response can\'t be transformed to jsonl. It is not  list[dict]'
                     )
                 return list_to_jsonl(self.data, self.compression)
