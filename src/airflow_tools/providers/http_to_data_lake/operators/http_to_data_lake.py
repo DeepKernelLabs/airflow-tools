@@ -79,7 +79,7 @@ class HttpToDataLake(BaseOperator):
             file_name += f'.{self.compression}'
         return file_name
 
-    def _response_filter(self, response) -> BytesIO | None:
+    def _response_filter(self, response) -> BytesIO:
         match self.save_format:
             case 'json':
                 if not self.jmespath_expression:
