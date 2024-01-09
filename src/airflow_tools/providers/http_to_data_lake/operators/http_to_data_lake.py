@@ -8,6 +8,7 @@ from airflow.hooks.base import BaseHook
 from airflow.models import BaseOperator
 from airflow.providers.http.operators.http import HttpOperator
 
+from airflow_tools.compression_utils import compress
 from airflow_tools.data_lake_facade import DataLakeFacade
 from airflow_tools.exceptions import ApiResponseTypeError
 
@@ -89,7 +90,7 @@ class HttpToDataLake(BaseOperator):
                         self.jmespath_expression, response.json()
                     )
 
-                return json_to_binary(self.data)
+                return json_to_binary(self.data, self.compression)
 
             case 'jsonl':
                 if not self.jmespath_expression:
@@ -118,6 +119,8 @@ def list_to_jsonl(data: list[dict], compression: 'CompressionOptions') -> BytesI
     return out
 
 
-def json_to_binary(data: dict) -> BytesIO:
-    out = BytesIO(json.dumps(data).encode())
+def json_to_binary(data: dict, compression: 'CompressionOptions') -> BytesIO:
+    json_string = json.dumps(data).encode()
+    compressed_json = compress(compression, json_string)
+    out = BytesIO(compressed_json)
     return out
