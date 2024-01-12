@@ -21,7 +21,6 @@ SaveFormat = Literal['jsonl']
 
 
 class HttpToDataLake(BaseOperator):
-    conn_type = 'http_to_data_lake'
     template_fields = HttpOperator.template_fields + ('data_lake_path',)
     template_fields_renderers = HttpOperator.template_fields_renderers
 

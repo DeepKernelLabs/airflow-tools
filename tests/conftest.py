@@ -53,3 +53,9 @@ def s3_bucket(s3_resource):
 def s3_resource():
     endpoint_url = os.environ['S3_ENDPOINT_URL']
     return boto3.resource('s3', endpoint_url=endpoint_url)
+
+
+@pytest.fixture
+def s3_client():
+    endpoint_url = os.environ['S3_ENDPOINT_URL']
+    return boto3.client('s3', endpoint_url=endpoint_url)

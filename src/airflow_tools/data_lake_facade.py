@@ -31,7 +31,9 @@ class DataLakeFacade:
                 logger.info(
                     f'Writing to wasb container "{container_name}" and blob "{blob_name}"'
                 )
-                self.conn.upload(container_name=container_name, blob_name=blob_name, data=data)
+                self.conn.upload(
+                    container_name=container_name, blob_name=blob_name, data=data
+                )
             case "aws":
                 self.conn: S3Hook
                 bucket_name, key_name = _get_bucket_and_key_name(path)
@@ -44,6 +46,25 @@ class DataLakeFacade:
             case _:
                 raise NotImplementedError(
                     f"Data Lake type {self.conn.conn_type} does not support write"
+                )
+
+    def delete_prefix(self, prefix: str):
+        match self.conn.conn_type:
+            case "wasb":
+                self.conn: WasbHook
+                container_name, blob_prefix = _get_container_and_blob_name(prefix)
+                blobs = self.conn.get_blobs_list(container_name, prefix=blob_prefix)
+                for blob in blobs:
+                    self.conn.delete_blob(container_name, blob.name)
+            case "aws":
+                self.conn: S3Hook
+                bucket_name, key_prefix = _get_bucket_and_key_name(prefix)
+                self.conn.get_bucket(bucket_name).objects.filter(
+                    Prefix=key_prefix
+                ).delete()
+            case _:
+                raise NotImplementedError(
+                    f"Data Lake type {self.conn.conn_type} does not support delete_prefix"
                 )
 
 
