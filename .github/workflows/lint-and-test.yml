@@ -26,6 +26,9 @@ jobs:
         run: |
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
+      - uses: chartboost/ruff-action@v1
+        with:
+          args: --fix -e --no-cache
       - name: Set up cache
         uses: actions/cache@v2
         with:
@@ -36,9 +39,6 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
-      - uses: chartboost/ruff-action@v1
-        with:
-          args: --fix -e
       - uses: reviewdog/action-suggester@v1
         with:
           tool_name: ruff
