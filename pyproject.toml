@@ -29,6 +29,7 @@ apache-airflow = {version = ">=2.6", extras = ["api,async,postgres"]}
 black = "^23.10.0"
 ruff = "^0.1.0"
 isort = "^5.12.0"
+mypy = "^1.8.0"
 
 
 [tool.poetry.group.test.dependencies]
@@ -47,3 +48,6 @@ profile = "black"
 
 [tool.black]
 skip-string-normalization = true
+
+[tool.mypy]
+allow_redefinition = true
