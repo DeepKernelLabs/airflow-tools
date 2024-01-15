@@ -1,3 +1,12 @@
+"""
+We need the unused imports to fix this error:
+
+=========================== short test summary info ============================
+FAILED tests/integration/test_http_to_data_lake.py::test_http_to_data_lake - sqlalchemy.exc.NoReferencedTableError: Foreign key associated with column 'dag_run_note.user_id' could not find table 'ab_user' with which to generate a foreign key to target column 'id'
+============= 1 failed, 10 passed, 9 warnings in 98.08s (0:01:38) ==============
+
+TODO: Remove this in the future once airflow fixes it
+"""
 import os
 from pathlib import Path
 
@@ -5,6 +14,8 @@ import boto3
 import pendulum
 import pytest
 from airflow import DAG
+from airflow.auth.managers.fab.models import User  # noqa # type: ignore
+from airflow.models.dagrun import DagRunNote  # noqa
 
 
 @pytest.fixture
@@ -53,3 +64,9 @@ def s3_bucket(s3_resource):
 def s3_resource():
     endpoint_url = os.environ['S3_ENDPOINT_URL']
     return boto3.resource('s3', endpoint_url=endpoint_url)
+
+
+@pytest.fixture
+def s3_client():
+    endpoint_url = os.environ['S3_ENDPOINT_URL']
+    return boto3.client('s3', endpoint_url=endpoint_url)

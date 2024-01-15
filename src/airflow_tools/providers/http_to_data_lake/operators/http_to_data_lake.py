@@ -1,28 +1,30 @@
 import json
-from io import BytesIO
+from io import BytesIO, StringIO
 from typing import TYPE_CHECKING, Any, Literal
 
 import jmespath
 import pandas as pd
 from airflow.hooks.base import BaseHook
 from airflow.models import BaseOperator
-from airflow.providers.http.operators.http import HttpOperator
 
-from airflow_tools.compression_utils import compress
+try:
+    from airflow.providers.http.operators.http import HttpOperator
+except ImportError:
+    from airflow.providers.http.operators.http import SimpleHttpOperator as HttpOperator
+
+from airflow_tools.compression_utils import CompressionOptions, compress
 from airflow_tools.data_lake_facade import DataLakeFacade
 from airflow_tools.exceptions import ApiResponseTypeError
 
 if TYPE_CHECKING:
     from airflow.utils.context import Context
-    from pandas._typing import CompressionOptions
     from requests.auth import AuthBase
 
 SaveFormat = Literal['jsonl']
 
 
 class HttpToDataLake(BaseOperator):
-    conn_type = 'http_to_data_lake'
-    template_fields = HttpOperator.template_fields + ('data_lake_path',)
+    template_fields = list(HttpOperator.template_fields) + ['data_lake_path']
     template_fields_renderers = HttpOperator.template_fields_renderers
 
     def __init__(
@@ -31,7 +33,7 @@ class HttpToDataLake(BaseOperator):
         data_lake_conn_id: str,
         data_lake_path: str,
         save_format: SaveFormat = 'jsonl',
-        compression: 'CompressionOptions' = None,
+        compression: CompressionOptions = None,
         endpoint: str | None = None,
         method: str = "POST",
         data: Any = None,
@@ -112,11 +114,11 @@ class HttpToDataLake(BaseOperator):
 
 
 def list_to_jsonl(data: list[dict], compression: 'CompressionOptions') -> BytesIO:
-    out = BytesIO()
+    out = StringIO()
     df = pd.DataFrame(data)
     df.to_json(out, orient='records', lines=True, compression=compression)
     out.seek(0)
-    return out
+    return BytesIO(out.getvalue().encode())
 
 
 def json_to_binary(data: dict, compression: 'CompressionOptions') -> BytesIO:

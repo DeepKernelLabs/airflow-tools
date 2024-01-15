@@ -1,13 +1,10 @@
 import gzip
 import zipfile
 from io import BytesIO
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pandas._typing import CompressionOptions
-
+from typing import Literal, Union
 
 DEFAULT_ZIP_FILENAME = 'file.zip'
+CompressionOptions = Union[Literal['infer', 'gzip', 'bz2', 'zip', 'xz', 'zstd'], None]
 
 
 def gzip_data(data: bytes) -> bytes:

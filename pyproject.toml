@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "airflow-tools"
-version = "0.1.4"
+version = "0.2.0"
 description = ""
 authors = ["Biel Llobera <biel_llobera@dkl.digital>"]
 readme = "README.md"
 include = ["src/airflow_tools"]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<4.0"
+python = ">=3.9,<3.12"
 toml = "^0.10.2"
 apache-airflow-providers-microsoft-azure = "^8.0.0"
 jmespath = "^1.0.1"
@@ -29,6 +29,7 @@ apache-airflow = {version = ">=2.6", extras = ["api,async,postgres"]}
 black = "^23.10.0"
 ruff = "^0.1.0"
 isort = "^5.12.0"
+mypy = "^1.8.0"
 
 
 [tool.poetry.group.test.dependencies]
@@ -47,3 +48,6 @@ profile = "black"
 
 [tool.black]
 skip-string-normalization = true
+
+[tool.mypy]
+allow_redefinition = true
