@@ -1,6 +1,6 @@
 import json
 from io import BytesIO, StringIO
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
 import jmespath
 import pandas as pd
@@ -40,6 +40,7 @@ class HttpToDataLake(BaseOperator):
         headers: dict[str, str] | None = None,
         auth_type: type['AuthBase'] | None = None,
         jmespath_expression: str | None = None,
+        pagination_function: Callable | None = None,
         *args,
         **kwargs,
     ):
@@ -55,6 +56,7 @@ class HttpToDataLake(BaseOperator):
         self.headers = headers
         self.auth_type = auth_type
         self.jmespath_expression = jmespath_expression
+        self.pagination_function = pagination_function
 
     def execute(self, context: 'Context') -> Any:
         data = HttpOperator(
@@ -66,6 +68,7 @@ class HttpToDataLake(BaseOperator):
             headers=self.headers,
             auth_type=self.auth_type,
             response_filter=self._response_filter,
+            pagination_function=self.pagination_function,
         ).execute(context)
 
         data_lake_conn = BaseHook.get_connection(self.data_lake_conn_id)
@@ -83,26 +86,28 @@ class HttpToDataLake(BaseOperator):
         return file_name
 
     def _response_filter(self, response) -> BytesIO:
+        # After pagination response can be a list of responses that needs to be unested to use .json()
+
+        if isinstance(response, list):
+            if not self.jmespath_expression:
+                self.data = [r.json() for r in response]
+            else:
+                self.data = [
+                    item
+                    for r in response
+                    for item in jmespath.search(self.jmespath_expression, r.json())
+                ]
+        else:
+            if not self.jmespath_expression:
+                self.data = response.json()
+            else:
+                self.data = jmespath.search(self.jmespath_expression, response.json())
+
         match self.save_format:
             case 'json':
-                if not self.jmespath_expression:
-                    self.data = response.json()
-                else:
-                    self.data = jmespath.search(
-                        self.jmespath_expression, response.json()
-                    )
-
                 return json_to_binary(self.data, self.compression)
 
             case 'jsonl':
-                if not self.jmespath_expression:
-                    self.data = response.json()
-
-                else:
-                    self.data = jmespath.search(
-                        self.jmespath_expression, response.json()
-                    )
-
                 if not isinstance(self.data, list):
                     raise ApiResponseTypeError(
                         'Expected response can\'t be transformed to jsonl. It is not  list[dict]'
