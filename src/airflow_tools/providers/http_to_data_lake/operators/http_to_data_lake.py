@@ -87,16 +87,15 @@ class HttpToDataLake(BaseOperator):
 
     def _response_filter(self, response) -> BytesIO:
         # After pagination response can be a list of responses that needs to be unested to use .json()
-
         if isinstance(response, list):
             if not self.jmespath_expression:
                 self.data = [r.json() for r in response]
             else:
                 self.data = [
-                    item
+                    jmespath.search(self.jmespath_expression, r.json())
                     for r in response
-                    for item in jmespath.search(self.jmespath_expression, r.json())
                 ]
+
         else:
             if not self.jmespath_expression:
                 self.data = response.json()
@@ -108,6 +107,8 @@ class HttpToDataLake(BaseOperator):
                 return json_to_binary(self.data, self.compression)
 
             case 'jsonl':
+                if isinstance(response, list):
+                    self.data = [item for sublist in self.data for item in sublist]
                 if not isinstance(self.data, list):
                     raise ApiResponseTypeError(
                         'Expected response can\'t be transformed to jsonl. It is not  list[dict]'

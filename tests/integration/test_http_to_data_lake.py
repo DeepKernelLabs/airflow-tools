@@ -230,7 +230,7 @@ def reqres_pagination_function(response):
         return None
 
 
-def test_http_to_datalake_pagination(dag, s3_bucket, s3_resource, monkeypatch):
+def test_http_to_datalake_pagination_jsonl(dag, s3_bucket, s3_resource, monkeypatch):
     """This test uses the mock API https://reqres.in/"""
     monkeypatch.setenv(
         'AIRFLOW_CONN_HTTP_TEST',
@@ -250,6 +250,7 @@ def test_http_to_datalake_pagination(dag, s3_bucket, s3_resource, monkeypatch):
             endpoint='/api/users',
             method='GET',
             data={'page': 1},
+            save_format='jsonl',
             jmespath_expression='data[:2].{id: id, email: email}',
             pagination_function=reqres_pagination_function,
         )
@@ -271,3 +272,39 @@ def test_http_to_datalake_pagination(dag, s3_bucket, s3_resource, monkeypatch):
 {"id":8,"email":"lindsay.ferguson@reqres.in"}
 """
     )
+
+
+def test_http_to_datalake_pagination_json(dag, s3_bucket, s3_resource, monkeypatch):
+    """This test uses the mock API https://reqres.in/"""
+    monkeypatch.setenv(
+        'AIRFLOW_CONN_HTTP_TEST',
+        json.dumps(
+            {
+                'conn_type': 'http',
+                'host': 'https://reqres.in',
+            }
+        ),
+    )
+    with dag:
+        HttpToDataLake(
+            task_id='test_http_to_data_lake',
+            http_conn_id='http_test',
+            data_lake_conn_id='data_lake_test',
+            data_lake_path=s3_bucket + '/source1/entity1/{{ ds }}/',
+            endpoint='/api/users',
+            method='GET',
+            data={'page': 1},
+            save_format='json',
+            jmespath_expression='{page:page,total:total}',
+            pagination_function=reqres_pagination_function,
+        )
+    dag.test(execution_date=pendulum.datetime(2023, 10, 1))
+
+    content = (
+        s3_resource.Object(s3_bucket, 'source1/entity1/2023-10-01/part0001.json')
+        .get()['Body']
+        .read()
+        .decode('utf-8')
+    )
+
+    assert content == """[{"page": 1, "total": 12}, {"page": 2, "total": 12}]"""
