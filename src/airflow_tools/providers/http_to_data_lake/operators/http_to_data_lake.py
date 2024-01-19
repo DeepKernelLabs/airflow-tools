@@ -126,8 +126,6 @@ class HttpToDataLake(BaseOperator):
                 return json_to_binary(self.data, self.compression)
 
             case 'jsonl':
-                # if isinstance(response, list):
-                #    self.data = [item for sublist in self.data for item in sublist]
                 if not isinstance(self.data, list):
                     raise ApiResponseTypeError(
                         'Expected response can\'t be transformed to jsonl. It is not  list[dict]'
