@@ -56,11 +56,9 @@ class DataLakeFacade:
             case "wasb":
                 assert isinstance(self.conn, WasbHook)
                 container_name, blob_prefix = _get_container_and_blob_name(prefix)
-                blob_names = self.conn.get_blobs_list(
-                    container_name, prefix=blob_prefix
+                self.conn.delete_file(
+                    container_name, blob_prefix, is_prefix=True, ignore_if_missing=True
                 )
-                for blob_name in blob_names:
-                    self.conn.delete_blobs(container_name, blob_name)
             case "aws":
                 assert isinstance(self.conn, S3Hook)
                 bucket_name, key_prefix = _get_bucket_and_key_name(prefix)
