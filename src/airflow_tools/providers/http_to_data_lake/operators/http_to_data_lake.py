@@ -1,6 +1,6 @@
 import json
 from io import BytesIO, StringIO
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal
 
 import jmespath
 import pandas as pd
@@ -12,15 +12,43 @@ try:
 except ImportError:
     from airflow.providers.http.operators.http import SimpleHttpOperator as HttpOperator
 
+from airflow.utils.context import Context
+from requests import Response
+
 from airflow_tools.compression_utils import CompressionOptions, compress
 from airflow_tools.data_lake_facade import DataLakeFacade
 from airflow_tools.exceptions import ApiResponseTypeError
 
 if TYPE_CHECKING:
-    from airflow.utils.context import Context
     from requests.auth import AuthBase
 
 SaveFormat = Literal['jsonl']
+
+
+class HttpBatchOperator(HttpOperator):
+    def execute(self, context: Context) -> Any:
+        self.log.info("Calling HTTP method")
+        response = self.hook.run(
+            self.endpoint, self.data, self.headers, self.extra_options
+        )
+        yield self.process_response(context=context, response=response)
+        for response in self.paginate_sync(response=response):
+            yield self.process_response(context=context, response=response)
+
+    def paginate_sync(self, response: Response) -> Response | list[Response]:
+        if not self.pagination_function:
+            yield response
+            return None
+
+        while True:
+            next_page_params = self.pagination_function(response)
+            if not next_page_params:
+                break
+            response = self.hook.run(
+                **self._merge_next_page_parameters(next_page_params)
+            )
+            yield response
+        return None
 
 
 class HttpToDataLake(BaseOperator):
@@ -40,6 +68,7 @@ class HttpToDataLake(BaseOperator):
         headers: dict[str, str] | None = None,
         auth_type: type['AuthBase'] | None = None,
         jmespath_expression: str | None = None,
+        pagination_function: Callable | None = None,
         *args,
         **kwargs,
     ):
@@ -55,9 +84,10 @@ class HttpToDataLake(BaseOperator):
         self.headers = headers
         self.auth_type = auth_type
         self.jmespath_expression = jmespath_expression
+        self.pagination_function = pagination_function
 
     def execute(self, context: 'Context') -> Any:
-        data = HttpOperator(
+        http_batch_operator = HttpBatchOperator(
             task_id='http-operator',
             http_conn_id=self.http_conn_id,
             endpoint=self.endpoint,
@@ -66,43 +96,35 @@ class HttpToDataLake(BaseOperator):
             headers=self.headers,
             auth_type=self.auth_type,
             response_filter=self._response_filter,
-        ).execute(context)
-
-        data_lake_conn = BaseHook.get_connection(self.data_lake_conn_id)
-        data_lake_facade = DataLakeFacade(
-            conn=data_lake_conn.get_hook(),
+            pagination_function=self.pagination_function,
         )
+        for i, data in enumerate(http_batch_operator.execute(context), start=1):
+            data_lake_conn = BaseHook.get_connection(self.data_lake_conn_id)
+            data_lake_facade = DataLakeFacade(
+                conn=data_lake_conn.get_hook(),
+            )
 
-        file_path = self.data_lake_path.rstrip('/') + '/' + self._file_name()
-        data_lake_facade.write(data, file_path)
+            file_path = self.data_lake_path.rstrip('/') + '/' + self._file_name(i)
 
-    def _file_name(self) -> str:
-        file_name = f'part0001.{self.save_format}'
+            data_lake_facade.write(data, file_path)
+
+    def _file_name(self, n_part) -> str:
+        file_name = f'part{n_part:04}.{self.save_format}'
         if self.compression:
             file_name += f'.{self.compression}'
         return file_name
 
     def _response_filter(self, response) -> BytesIO:
+        if not self.jmespath_expression:
+            self.data = response.json()
+        else:
+            self.data = jmespath.search(self.jmespath_expression, response.json())
+
         match self.save_format:
             case 'json':
-                if not self.jmespath_expression:
-                    self.data = response.json()
-                else:
-                    self.data = jmespath.search(
-                        self.jmespath_expression, response.json()
-                    )
-
                 return json_to_binary(self.data, self.compression)
 
             case 'jsonl':
-                if not self.jmespath_expression:
-                    self.data = response.json()
-
-                else:
-                    self.data = jmespath.search(
-                        self.jmespath_expression, response.json()
-                    )
-
                 if not isinstance(self.data, list):
                     raise ApiResponseTypeError(
                         'Expected response can\'t be transformed to jsonl. It is not  list[dict]'
