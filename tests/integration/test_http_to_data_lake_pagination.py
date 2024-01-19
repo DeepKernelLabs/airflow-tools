@@ -4,8 +4,8 @@ import pendulum
 import pytest
 
 from airflow_tools.exceptions import ApiResponseTypeError
-from airflow_tools.providers.http_to_data_lake.operators.http_to_data_lake import (
-    HttpToDataLake,
+from airflow_tools.providers.http_to_data_lake.operators.http_to_data_lake_pagination import (
+    HttpToDatalakePagination,
 )
 
 
@@ -21,7 +21,8 @@ def test_http_to_data_lake(dag, s3_bucket, s3_resource, monkeypatch):
         ),
     )
     with dag:
-        HttpToDataLake(
+        # HttpToDataLake(
+        HttpToDatalakePagination(
             task_id='test_http_to_data_lake',
             http_conn_id='http_test',
             data_lake_conn_id='data_lake_test',
@@ -59,7 +60,7 @@ def test_http_to_data_lake_response_format_jsonl_with_jmespath_expression(
             }
         ),
     )
-    http_to_data_lake_op = HttpToDataLake(
+    http_to_data_lake_op = HttpToDatalakePagination(
         task_id='test_http_to_data_lake',
         http_conn_id='http_test',
         data_lake_conn_id='data_lake_test',
@@ -78,7 +79,7 @@ def test_http_to_data_lake_response_format_jsonl_with_jmespath_expression(
     )
 
     with pytest.raises(ApiResponseTypeError):
-        response_origin_no_list = HttpToDataLake(
+        response_origin_no_list = HttpToDatalakePagination(  # HttpToDataLake(
             task_id='test_http_to_data_lake',
             http_conn_id='http_test',
             data_lake_conn_id='data_lake_test',
@@ -105,7 +106,7 @@ def test_http_to_data_lake_response_format_jsonl_without_jmespath_expression(
         ),
     )
     with pytest.raises(ApiResponseTypeError):
-        http_to_data_lake_op = HttpToDataLake(
+        http_to_data_lake_op = HttpToDatalakePagination(
             task_id='test_http_to_data_lake',
             http_conn_id='http_test',
             data_lake_conn_id='data_lake_test',
@@ -127,7 +128,7 @@ def test_http_to_data_lake_response_format_jsonl_without_jmespath_expression(
             }
         ),
     )
-    http_to_data_lake_list_op = HttpToDataLake(
+    http_to_data_lake_list_op = HttpToDatalakePagination(
         task_id='test_http_to_data_lake',
         http_conn_id='http_test_list',
         data_lake_conn_id='data_lake_test',
@@ -154,7 +155,7 @@ def test_http_to_data_lake_response_format_json_with_jmespath_expression(
             }
         ),
     )
-    http_to_data_lake_op = HttpToDataLake(
+    http_to_data_lake_op = HttpToDatalakePagination(
         task_id='test_http_to_data_lake',
         http_conn_id='http_test',
         data_lake_conn_id='data_lake_test',
@@ -182,7 +183,7 @@ def test_http_to_data_lake_response_format_json_without_jmespath_expression(
             }
         ),
     )
-    http_to_data_lake_op = HttpToDataLake(
+    http_to_data_lake_op = HttpToDatalakePagination(
         task_id='test_http_to_data_lake',
         http_conn_id='http_test',
         data_lake_conn_id='data_lake_test',
@@ -208,7 +209,7 @@ def test_http_to_data_lake_response_wrong_format(s3_bucket, monkeypatch):
         ),
     )
     with pytest.raises(NotImplementedError, match=r".*wrong_format.*"):
-        http_to_data_lake_op = HttpToDataLake(
+        http_to_data_lake_op = HttpToDatalakePagination(
             task_id='test_http_to_data_lake',
             http_conn_id='http_test',
             data_lake_conn_id='data_lake_test',
@@ -226,9 +227,13 @@ def reqres_pagination_function(response):
     current_page = response.json()['page']
     if current_page < response.json()['total_pages']:
         return {'data': {'page': current_page + 1}}
+    else:
+        return None
 
 
-def test_http_to_datalake_pagination_jsonl(dag, s3_bucket, s3_resource, monkeypatch):
+def test_http_to_datalake_pagination_not_in_memory_jsonl(
+    dag, s3_bucket, s3_resource, monkeypatch
+):
     """This test uses the mock API https://reqres.in/"""
     monkeypatch.setenv(
         'AIRFLOW_CONN_HTTP_TEST',
@@ -240,7 +245,7 @@ def test_http_to_datalake_pagination_jsonl(dag, s3_bucket, s3_resource, monkeypa
         ),
     )
     with dag:
-        HttpToDataLake(
+        HttpToDatalakePagination(
             task_id='test_http_to_data_lake',
             http_conn_id='http_test',
             data_lake_conn_id='data_lake_test',
@@ -253,26 +258,38 @@ def test_http_to_datalake_pagination_jsonl(dag, s3_bucket, s3_resource, monkeypa
             pagination_function=reqres_pagination_function,
         )
     dag.test(execution_date=pendulum.datetime(2023, 10, 1))
-
-    content = (
+    content_part_1 = (
         s3_resource.Object(s3_bucket, 'source1/entity1/2023-10-01/part0001.jsonl')
         .get()['Body']
         .read()
         .decode('utf-8')
     )
 
+    content_part_2 = (
+        s3_resource.Object(s3_bucket, 'source1/entity1/2023-10-01/part0002.jsonl')
+        .get()['Body']
+        .read()
+        .decode('utf-8')
+    )
     assert (
-        content
+        content_part_1
         == """\
 {"id":1,"email":"george.bluth@reqres.in"}
 {"id":2,"email":"janet.weaver@reqres.in"}
+"""
+    )
+    assert (
+        content_part_2
+        == """\
 {"id":7,"email":"michael.lawson@reqres.in"}
 {"id":8,"email":"lindsay.ferguson@reqres.in"}
 """
     )
 
 
-def test_http_to_datalake_pagination_json(dag, s3_bucket, s3_resource, monkeypatch):
+def test_http_to_datalake_pagination_not_in_memory_json(
+    dag, s3_bucket, s3_resource, monkeypatch
+):
     """This test uses the mock API https://reqres.in/"""
     monkeypatch.setenv(
         'AIRFLOW_CONN_HTTP_TEST',
@@ -284,7 +301,7 @@ def test_http_to_datalake_pagination_json(dag, s3_bucket, s3_resource, monkeypat
         ),
     )
     with dag:
-        HttpToDataLake(
+        HttpToDatalakePagination(
             task_id='test_http_to_data_lake',
             http_conn_id='http_test',
             data_lake_conn_id='data_lake_test',
@@ -297,12 +314,18 @@ def test_http_to_datalake_pagination_json(dag, s3_bucket, s3_resource, monkeypat
             pagination_function=reqres_pagination_function,
         )
     dag.test(execution_date=pendulum.datetime(2023, 10, 1))
-
-    content = (
+    content_part1 = (
         s3_resource.Object(s3_bucket, 'source1/entity1/2023-10-01/part0001.json')
         .get()['Body']
         .read()
         .decode('utf-8')
     )
+    content_part2 = (
+        s3_resource.Object(s3_bucket, 'source1/entity1/2023-10-01/part0002.json')
+        .get()['Body']
+        .read()
+        .decode('utf-8')
+    )
 
-    assert content == """[{"page": 1, "total": 12}, {"page": 2, "total": 12}]"""
+    assert content_part1 == """{"page": 1, "total": 12}"""
+    assert content_part2 == """{"page": 2, "total": 12}"""

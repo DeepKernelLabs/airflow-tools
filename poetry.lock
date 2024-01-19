@@ -706,17 +706,16 @@ files = [
 
 [[package]]
 name = "azure-core"
-version = "1.29.6"
+version = "1.29.7"
 description = "Microsoft Azure Core Library for Python"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "azure-core-1.29.6.tar.gz", hash = "sha256:13b485252ecd9384ae624894fe51cfa6220966207264c360beada239f88b738a"},
-    {file = "azure_core-1.29.6-py3-none-any.whl", hash = "sha256:604a005bce6a49ba661bb7b2be84a9b169047e52fcfcd0a4e4770affab4178f7"},
+    {file = "azure-core-1.29.7.tar.gz", hash = "sha256:2944faf1a7ff1558b1f457cabf60f279869cabaeef86b353bed8eb032c7d8c5e"},
+    {file = "azure_core-1.29.7-py3-none-any.whl", hash = "sha256:95a7b41b4af102e5fcdfac9500fcc82ff86e936c7145a099b7848b9ac0501250"},
 ]
 
 [package.dependencies]
-anyio = ">=3.0,<5.0"
 requests = ">=2.21.0"
 six = ">=1.11.0"
 typing-extensions = ">=4.6.0"
@@ -1192,17 +1191,17 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.34.21"
+version = "1.34.22"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">= 3.8"
 files = [
-    {file = "boto3-1.34.21-py3-none-any.whl", hash = "sha256:88e3baeb53ae421aabd44bb49ebdd7122b74b53b0f437b0f3e17141f6744574a"},
-    {file = "boto3-1.34.21.tar.gz", hash = "sha256:206e61ba1f8c830e5df0355606d178ad5bc970df12c4c318b021c71da410eb0c"},
+    {file = "boto3-1.34.22-py3-none-any.whl", hash = "sha256:5909cd1393143576265c692e908a9ae495492c04a0ffd4bae8578adc2e44729e"},
+    {file = "boto3-1.34.22.tar.gz", hash = "sha256:a98c0b86f6044ff8314cc2361e1ef574d674318313ab5606ccb4a6651c7a3f8c"},
 ]
 
 [package.dependencies]
-botocore = ">=1.34.21,<1.35.0"
+botocore = ">=1.34.22,<1.35.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.10.0,<0.11.0"
 
@@ -1211,13 +1210,13 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "boto3-stubs"
-version = "1.34.21"
-description = "Type annotations for boto3 1.34.21 generated with mypy-boto3-builder 7.23.1"
+version = "1.34.22"
+description = "Type annotations for boto3 1.34.22 generated with mypy-boto3-builder 7.23.1"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3-stubs-1.34.21.tar.gz", hash = "sha256:9e896da8dad7f7e19e1667d16821264f64d1fe9fea51f054095e5c58cd0f64d5"},
-    {file = "boto3_stubs-1.34.21-py3-none-any.whl", hash = "sha256:b017b864614bde633a2a651a72750f74110b5210da2b71dd07ca49c38471be5b"},
+    {file = "boto3-stubs-1.34.22.tar.gz", hash = "sha256:9a43ed735f6552d07d7ef2a4d50a6057fa5b62d35a1781656251c2778d7f6d58"},
+    {file = "boto3_stubs-1.34.22-py3-none-any.whl", hash = "sha256:1ec434a9daac3b6a4a053fb2991118db0c3bd7057e1d81d81d9192703c501570"},
 ]
 
 [package.dependencies]
@@ -1267,7 +1266,7 @@ bedrock-agent = ["mypy-boto3-bedrock-agent (>=1.34.0,<1.35.0)"]
 bedrock-agent-runtime = ["mypy-boto3-bedrock-agent-runtime (>=1.34.0,<1.35.0)"]
 bedrock-runtime = ["mypy-boto3-bedrock-runtime (>=1.34.0,<1.35.0)"]
 billingconductor = ["mypy-boto3-billingconductor (>=1.34.0,<1.35.0)"]
-boto3 = ["boto3 (==1.34.21)", "botocore (==1.34.21)"]
+boto3 = ["boto3 (==1.34.22)", "botocore (==1.34.22)"]
 braket = ["mypy-boto3-braket (>=1.34.0,<1.35.0)"]
 budgets = ["mypy-boto3-budgets (>=1.34.0,<1.35.0)"]
 ce = ["mypy-boto3-ce (>=1.34.0,<1.35.0)"]
@@ -1609,13 +1608,13 @@ xray = ["mypy-boto3-xray (>=1.34.0,<1.35.0)"]
 
 [[package]]
 name = "botocore"
-version = "1.34.21"
+version = "1.34.22"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">= 3.8"
 files = [
-    {file = "botocore-1.34.21-py3-none-any.whl", hash = "sha256:43274fd3f8e02573790ee76313607c60e3c15a7a0d89d24dfe4042f882f1f8c9"},
-    {file = "botocore-1.34.21.tar.gz", hash = "sha256:21983bb0473a19130192c50ec6974d55f0c4aa48a7094bcf40f7882c8b69b8f1"},
+    {file = "botocore-1.34.22-py3-none-any.whl", hash = "sha256:e5f7775975b9213507fbcf846a96b7a2aec2a44fc12a44585197b014a4ab0889"},
+    {file = "botocore-1.34.22.tar.gz", hash = "sha256:c47ba4286c576150d1b6ca6df69a87b5deff3d23bd84da8bcf8431ebac3c40ba"},
 ]
 
 [package.dependencies]
@@ -1631,13 +1630,13 @@ crt = ["awscrt (==0.19.19)"]
 
 [[package]]
 name = "botocore-stubs"
-version = "1.34.21"
+version = "1.34.22"
 description = "Type annotations and code completion for botocore"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "botocore_stubs-1.34.21-py3-none-any.whl", hash = "sha256:971d62a05f6a1f4148d5fcb2de39330a3ca534edeec121dd4f47ede97618f886"},
-    {file = "botocore_stubs-1.34.21.tar.gz", hash = "sha256:c5cde98a46fc94d50d4ecd465dd5c64501221c94fe2895a606de5c45ec837643"},
+    {file = "botocore_stubs-1.34.22-py3-none-any.whl", hash = "sha256:d6c05d3906e6d291ccd7d8c5feb427f971b71d489072c62a3b8191533bdc4d03"},
+    {file = "botocore_stubs-1.34.22.tar.gz", hash = "sha256:e696cbdcf40cf89fb21a21e00f37a58c20dbe1422b8b7f745291a48686439d1f"},
 ]
 
 [package.dependencies]
@@ -2314,13 +2313,13 @@ Werkzeug = ">=1.0.1"
 
 [[package]]
 name = "flask-session"
-version = "0.5.0"
+version = "0.6.0"
 description = "Server-side session support for Flask"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "Flask-Session-0.5.0.tar.gz", hash = "sha256:190875e6aebf2953c6803d42379ef3b934bc209ef8ef006f97aecb08f5aaeb86"},
-    {file = "flask_session-0.5.0-py3-none-any.whl", hash = "sha256:1619bcbc16f04f64e90f8e0b17145ba5c9700090bb1294e889956c1282d58631"},
+    {file = "flask_session-0.6.0-py3-none-any.whl", hash = "sha256:dd77b6c5916021a540a8c188731c529596ad9ea382c07a24f9654355fa40c9ad"},
+    {file = "flask_session-0.6.0.tar.gz", hash = "sha256:b1ed06cf4c5a211305579a132e81307d242cec6fe2714a276405730ffd22a034"},
 ]
 
 [package.dependencies]
