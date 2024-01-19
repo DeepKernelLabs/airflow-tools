@@ -99,7 +99,7 @@ jobs:
           echo "PYTHONPATH=src" >> $GITHUB_ENV
       - name: Initialize database
         run: |
-          poetry run airflow db init
+          poetry run airflow db standalone
       - name: Run tests with pytest
         run: |
           poetry run pytest tests/ --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
