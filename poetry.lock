@@ -2313,13 +2313,13 @@ Werkzeug = ">=1.0.1"
 
 [[package]]
 name = "flask-session"
-version = "0.6.0"
+version = "0.5.0"
 description = "Server-side session support for Flask"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "flask_session-0.6.0-py3-none-any.whl", hash = "sha256:dd77b6c5916021a540a8c188731c529596ad9ea382c07a24f9654355fa40c9ad"},
-    {file = "flask_session-0.6.0.tar.gz", hash = "sha256:b1ed06cf4c5a211305579a132e81307d242cec6fe2714a276405730ffd22a034"},
+    {file = "Flask-Session-0.5.0.tar.gz", hash = "sha256:190875e6aebf2953c6803d42379ef3b934bc209ef8ef006f97aecb08f5aaeb86"},
+    {file = "flask_session-0.5.0-py3-none-any.whl", hash = "sha256:1619bcbc16f04f64e90f8e0b17145ba5c9700090bb1294e889956c1282d58631"},
 ]
 
 [package.dependencies]
@@ -5731,4 +5731,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "47c7cb72a9bea6d3769415d170d1de2514db4fdc72d9742df4a511848330220f"
+content-hash = "052ecc285528b0434d5c43e95407c2dd41e55e69ded8de2fde2f56cab474ece5"

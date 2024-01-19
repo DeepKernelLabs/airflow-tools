@@ -21,6 +21,7 @@ types-toml = "^0.10.8.7"
 types-jmespath = "^1.0.2.7"
 pandas-stubs = "^2.1.4.231218"
 apache-airflow = "2.8.0"
+flask-session = "0.5.0"
 
 [tool.poetry.plugins."apache_airflow_provider"]
 "provider_info" = "airflow_tools.providers.package:get_provider_info"
