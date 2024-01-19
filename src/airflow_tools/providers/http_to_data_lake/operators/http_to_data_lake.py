@@ -106,7 +106,6 @@ class HttpToDataLake(BaseOperator):
 
             file_path = self.data_lake_path.rstrip('/') + '/' + self._file_name(i)
 
-            # from pdb import set_trace; set_trace()
             data_lake_facade.write(data, file_path)
 
     def _file_name(self, n_part) -> str:
