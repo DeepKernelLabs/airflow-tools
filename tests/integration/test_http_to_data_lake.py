@@ -254,18 +254,29 @@ def test_http_to_datalake_pagination_jsonl(dag, s3_bucket, s3_resource, monkeypa
         )
     dag.test(execution_date=pendulum.datetime(2023, 10, 1))
 
-    content = (
+    content_part_1 = (
         s3_resource.Object(s3_bucket, 'source1/entity1/2023-10-01/part0001.jsonl')
         .get()['Body']
         .read()
         .decode('utf-8')
     )
 
+    content_part_2 = (
+        s3_resource.Object(s3_bucket, 'source1/entity1/2023-10-01/part0002.jsonl')
+        .get()['Body']
+        .read()
+        .decode('utf-8')
+    )
     assert (
-        content
+        content_part_1
         == """\
 {"id":1,"email":"george.bluth@reqres.in"}
 {"id":2,"email":"janet.weaver@reqres.in"}
+"""
+    )
+    assert (
+        content_part_2
+        == """\
 {"id":7,"email":"michael.lawson@reqres.in"}
 {"id":8,"email":"lindsay.ferguson@reqres.in"}
 """
@@ -298,11 +309,18 @@ def test_http_to_datalake_pagination_json(dag, s3_bucket, s3_resource, monkeypat
         )
     dag.test(execution_date=pendulum.datetime(2023, 10, 1))
 
-    content = (
+    content_part1 = (
         s3_resource.Object(s3_bucket, 'source1/entity1/2023-10-01/part0001.json')
         .get()['Body']
         .read()
         .decode('utf-8')
     )
+    content_part2 = (
+        s3_resource.Object(s3_bucket, 'source1/entity1/2023-10-01/part0002.json')
+        .get()['Body']
+        .read()
+        .decode('utf-8')
+    )
 
-    assert content == """[{"page": 1, "total": 12}, {"page": 2, "total": 12}]"""
+    assert content_part1 == """{"page": 1, "total": 12}"""
+    assert content_part2 == """{"page": 2, "total": 12}"""

@@ -12,15 +12,43 @@ try:
 except ImportError:
     from airflow.providers.http.operators.http import SimpleHttpOperator as HttpOperator
 
+from airflow.utils.context import Context
+from requests import Response
+
 from airflow_tools.compression_utils import CompressionOptions, compress
 from airflow_tools.data_lake_facade import DataLakeFacade
 from airflow_tools.exceptions import ApiResponseTypeError
 
 if TYPE_CHECKING:
-    from airflow.utils.context import Context
     from requests.auth import AuthBase
 
 SaveFormat = Literal['jsonl']
+
+
+class HttpBatchOperator(HttpOperator):
+    def execute(self, context: Context) -> Any:
+        self.log.info("Calling HTTP method")
+        response = self.hook.run(
+            self.endpoint, self.data, self.headers, self.extra_options
+        )
+        yield self.process_response(context=context, response=response)
+        for response in self.paginate_sync(response=response):
+            yield self.process_response(context=context, response=response)
+
+    def paginate_sync(self, response: Response) -> Response | list[Response]:
+        if not self.pagination_function:
+            yield response
+            return None
+
+        while True:
+            next_page_params = self.pagination_function(response)
+            if not next_page_params:
+                break
+            response = self.hook.run(
+                **self._merge_next_page_parameters(next_page_params)
+            )
+            yield response
+        return None
 
 
 class HttpToDataLake(BaseOperator):
@@ -59,7 +87,7 @@ class HttpToDataLake(BaseOperator):
         self.pagination_function = pagination_function
 
     def execute(self, context: 'Context') -> Any:
-        data = HttpOperator(
+        http_batch_operator = HttpBatchOperator(
             task_id='http-operator',
             http_conn_id=self.http_conn_id,
             endpoint=self.endpoint,
@@ -69,46 +97,37 @@ class HttpToDataLake(BaseOperator):
             auth_type=self.auth_type,
             response_filter=self._response_filter,
             pagination_function=self.pagination_function,
-        ).execute(context)
-
-        data_lake_conn = BaseHook.get_connection(self.data_lake_conn_id)
-        data_lake_facade = DataLakeFacade(
-            conn=data_lake_conn.get_hook(),
         )
+        for i, data in enumerate(http_batch_operator.execute(context), start=1):
+            data_lake_conn = BaseHook.get_connection(self.data_lake_conn_id)
+            data_lake_facade = DataLakeFacade(
+                conn=data_lake_conn.get_hook(),
+            )
 
-        file_path = self.data_lake_path.rstrip('/') + '/' + self._file_name()
-        data_lake_facade.write(data, file_path)
+            file_path = self.data_lake_path.rstrip('/') + '/' + self._file_name(i)
 
-    def _file_name(self) -> str:
-        file_name = f'part0001.{self.save_format}'
+            # from pdb import set_trace; set_trace()
+            data_lake_facade.write(data, file_path)
+
+    def _file_name(self, n_part) -> str:
+        file_name = f'part{n_part:04}.{self.save_format}'
         if self.compression:
             file_name += f'.{self.compression}'
         return file_name
 
     def _response_filter(self, response) -> BytesIO:
-        # After pagination response can be a list of responses that needs to be unested to use .json()
-        if isinstance(response, list):
-            if not self.jmespath_expression:
-                self.data = [r.json() for r in response]
-            else:
-                self.data = [
-                    jmespath.search(self.jmespath_expression, r.json())
-                    for r in response
-                ]
-
+        if not self.jmespath_expression:
+            self.data = response.json()
         else:
-            if not self.jmespath_expression:
-                self.data = response.json()
-            else:
-                self.data = jmespath.search(self.jmespath_expression, response.json())
+            self.data = jmespath.search(self.jmespath_expression, response.json())
 
         match self.save_format:
             case 'json':
                 return json_to_binary(self.data, self.compression)
 
             case 'jsonl':
-                if isinstance(response, list):
-                    self.data = [item for sublist in self.data for item in sublist]
+                # if isinstance(response, list):
+                #    self.data = [item for sublist in self.data for item in sublist]
                 if not isinstance(self.data, list):
                     raise ApiResponseTypeError(
                         'Expected response can\'t be transformed to jsonl. It is not  list[dict]'
