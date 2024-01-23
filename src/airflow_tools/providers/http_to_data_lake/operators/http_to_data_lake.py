@@ -74,7 +74,9 @@ class HttpBatchOperator(HttpOperator):
         """
         data: str | dict | None = None  # makes mypy happy
         next_page_data_param = next_page_params.get("data")
-        if use_new_data_parameters_on_pagination:
+        if use_new_data_parameters_on_pagination and isinstance(
+            next_page_data_param, dict
+        ):
             data = next_page_data_param
         elif isinstance(self.data, dict) and isinstance(next_page_data_param, dict):
             data = merge_dicts(self.data, next_page_data_param)
