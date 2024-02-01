@@ -330,6 +330,9 @@ def test_http_to_datalake_pagination_json(dag, s3_bucket, s3_resource, monkeypat
 def test_http_to_data_lake_check_one_page_data_is_duplicated(
     dag, s3_bucket, s3_resource, monkeypatch
 ):
+    # Check if a second file (`part002.jsonl`) is created calling the API
+    # for avoiding duplicates. If it exists, the test fails.
+
     """This test uses the mock API https://reqres.in/"""
     monkeypatch.setenv(
         'AIRFLOW_CONN_HTTP_TEST',
