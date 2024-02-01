@@ -45,7 +45,6 @@ class HttpBatchOperator(HttpOperator):
         self, response: Response, use_new_data_parameters_on_pagination=False
     ) -> Response | list[Response]:
         if not self.pagination_function:
-            yield response
             return None
 
         while True:

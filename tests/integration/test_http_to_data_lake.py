@@ -2,6 +2,7 @@ import json
 
 import pendulum
 import pytest
+from botocore.exceptions import ClientError as BotoClientError
 
 from airflow_tools.exceptions import ApiResponseTypeError
 from airflow_tools.providers.http_to_data_lake.operators.http_to_data_lake import (
@@ -324,3 +325,37 @@ def test_http_to_datalake_pagination_json(dag, s3_bucket, s3_resource, monkeypat
 
     assert content_part1 == """{"page": 1, "total": 12}"""
     assert content_part2 == """{"page": 2, "total": 12}"""
+
+
+def test_http_to_data_lake_check_one_page_data_is_duplicated(
+    dag, s3_bucket, s3_resource, monkeypatch
+):
+    """This test uses the mock API https://reqres.in/"""
+    monkeypatch.setenv(
+        'AIRFLOW_CONN_HTTP_TEST',
+        json.dumps(
+            {
+                'conn_type': 'http',
+                'host': 'https://reqres.in',
+            }
+        ),
+    )
+    with dag:
+        HttpToDataLake(
+            task_id='test_http_to_data_lake',
+            http_conn_id='http_test',
+            data_lake_conn_id='data_lake_test',
+            data_lake_path=s3_bucket + '/source1/entity1/{{ ds }}/',
+            endpoint='/api/users',
+            method='GET',
+            jmespath_expression='data[:2].{id: id, email: email}',
+        )
+    dag.test(execution_date=pendulum.datetime(2023, 10, 1))
+
+    with pytest.raises(BotoClientError, match=r".*NoSuchKey.*"):
+        _ = (
+            s3_resource.Object(s3_bucket, 'source1/entity1/2023-10-01/part0002.jsonl')
+            .get()['Body']
+            .read()
+            .decode('utf-8')
+        )
