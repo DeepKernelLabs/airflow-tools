@@ -11,6 +11,7 @@ include = ["src/airflow_tools"]
 python = ">=3.9,<3.12"
 toml = "^0.10.2"
 apache-airflow-providers-microsoft-azure = "^8.0.0"
+apache-airflow-providers-slack = "^8.5.1"
 jmespath = "^1.0.1"
 pandas = "^2.1.1"
 apache-airflow-providers-amazon = "^8.8.0"

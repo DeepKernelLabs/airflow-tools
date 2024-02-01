@@ -567,6 +567,25 @@ oracle = ["apache-airflow-providers-oracle"]
 sftp = ["apache-airflow-providers-sftp"]
 
 [[package]]
+name = "apache-airflow-providers-slack"
+version = "8.6.0"
+description = "Provider package apache-airflow-providers-slack for Apache Airflow"
+optional = false
+python-versions = "~=3.8"
+files = [
+    {file = "apache_airflow_providers_slack-8.6.0-py3-none-any.whl", hash = "sha256:d269e430af0663ba4fdbc0d314b872ffecac378cb4d68130c20eb8902a1db05b"},
+    {file = "apache_airflow_providers_slack-8.6.0.tar.gz", hash = "sha256:fa4d176de3c5f2083ddf57d368b17fd02c89b3102a8a3e23a83006cf632cbb3f"},
+]
+
+[package.dependencies]
+apache-airflow = ">=2.6.0"
+apache-airflow-providers-common-sql = ">=1.3.1"
+slack_sdk = ">=3.19.0"
+
+[package.extras]
+common-sql = ["apache-airflow-providers-common-sql"]
+
+[[package]]
 name = "apache-airflow-providers-sqlite"
 version = "3.7.0"
 description = "Provider package apache-airflow-providers-sqlite for Apache Airflow"
@@ -5120,6 +5139,17 @@ files = [
 ]
 
 [[package]]
+name = "slack-sdk"
+version = "3.26.2"
+description = "The Slack API Platform SDK for Python"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "slack_sdk-3.26.2-py2.py3-none-any.whl", hash = "sha256:a10e8ee69ca17d274989d0c2bbecb875f19898da3052d8d57de0898a00b1ab52"},
+    {file = "slack_sdk-3.26.2.tar.gz", hash = "sha256:bcdac5e688fa50e9357ecd00b803b6a8bad766aa614d35d8dc0636f40adc48bf"},
+]
+
+[[package]]
 name = "sniffio"
 version = "1.3.0"
 description = "Sniff out which async library your code is running under"
@@ -5771,4 +5801,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "052ecc285528b0434d5c43e95407c2dd41e55e69ded8de2fde2f56cab474ece5"
+content-hash = "fa137853e733cc3e73f32e8489afb5160ba70c083725b9d9650cfcfd315e73e7"
