@@ -76,7 +76,7 @@ if you are using environment variables.)
 
 Default message will have the format below:
 
-![Slack notification snapshot](https://private-user-images.githubusercontent.com/152852247/300061280-e9b4b8f1-6741-4d77-85a4-358645500c15.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MDY1MTE2OTUsIm5iZiI6MTcwNjUxMTM5NSwicGF0aCI6Ii8xNTI4NTIyNDcvMzAwMDYxMjgwLWU5YjRiOGYxLTY3NDEtNGQ3Ny04NWE0LTM1ODY0NTUwMGMxNS5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjQwMTI5JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI0MDEyOVQwNjU2MzVaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0zODQ2N2M4NWE2MmFjMjFiMjZjZDVmYjU4YWE2YzBlZDhkODgwMmViNzVlYmFjY2Y4NzM0YWNlNTMzZDA5MzYxJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZhY3Rvcl9pZD0wJmtleV9pZD0wJnJlcG9faWQ9MCJ9._uVapOD4BjuSqr8COZGfMQZZvNxcMsU3JEOXlhoDeyc)
+![image](https://github.com/DeepKernelLabs/airflow-tools/assets/152852247/52a5bf95-21bc-4c3b-8093-79953c0c5d61)
 
 But you can custom this message providing the below parameters:
 
@@ -84,3 +84,68 @@ But you can custom this message providing the below parameters:
 * **_blocks (dict)[optional]:_** you can provide your custom slack blocks for your message.
 * **_include_blocks (bool)[optional]:_** indicates if the default block have to be used. If you provide your own blocks will be ignored.
 * **_image_url: (str)[optional]_** image url for you notification (`accessory`). You can use `AIRFLOW_TOOLS__SLACK_NOTIFICATION_IMG_URL` instead.
+
+##### Example of use in a Dag 
+
+```python
+from datetime import datetime, timedelta
+
+from airflow import DAG
+
+from airflow.operators.bash import BashOperator
+from airflow_tools.notifications.slack.webhook import (
+    dag_failure_slack_notification_webhook,    # <--- IMPORT
+)
+
+with DAG(
+    "slack_notification_dkl",
+    description="Slack notification on fail",
+    schedule=timedelta(days=1),
+    start_date=datetime(2021, 1, 1),
+    catchup=False,
+    tags=["example"],
+    on_failure_callback=dag_failure_slack_notification_webhook(),  # <--- HERE
+) as dag:
+
+    t = BashOperator(
+        task_id="failing_test",
+        depends_on_past=False,
+        bash_command="exit 1",
+        retries=1,
+    )
+
+
+if __name__ == "__main__":
+    dag.test()
+```
+
+You can add a custom message (ignoring the slack blocks for a formatted message):
+
+```python
+with DAG(
+    ...
+    on_failure_callback=dag_failure_slack_notification_webhook(
+        text='The task {{ ti.task_id }} failed',
+        include_blocks=False
+    ), 
+) as dag:
+```
+
+Or you can pass your own Slack blocks: 
+
+```python
+custom_slack_blocks = {
+    "type": "section",
+    "text": {
+        "type": "mrkdwn",
+        "text": "<https://api.slack.com/reference/block-kit/block|This is an example using custom Slack blocks>"
+    }
+}
+
+with DAG(
+    ...
+    on_failure_callback=dag_failure_slack_notification_webhook(
+        blocks=custom_slack_blocks
+    ), 
+) as dag:
+```
