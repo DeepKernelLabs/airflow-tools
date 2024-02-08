@@ -83,9 +83,10 @@ But you can custom this message providing the below parameters:
 * **_text (str)[optional]:_** the main message will appear in the notification. If you provide your slack block will be ignored.
 * **_blocks (dict)[optional]:_** you can provide your custom slack blocks for your message.
 * **_include_blocks (bool)[optional]:_** indicates if the default block have to be used. If you provide your own blocks will be ignored.
+* **_source (typing.Literal['DAG', 'TASK'])[optional]:_** source of the failure (dag or task). Default: `DAG`.
 * **_image_url: (str)[optional]_** image url for you notification (`accessory`). You can use `AIRFLOW_TOOLS__SLACK_NOTIFICATION_IMG_URL` instead.
 
-##### Example of use in a Dag 
+##### Example of use in a Dag
 
 ```python
 from datetime import datetime, timedelta
@@ -119,6 +120,18 @@ if __name__ == "__main__":
     dag.test()
 ```
 
+You can used only in a task providing the parameter `source='TASK'`:
+
+```python
+    t = BashOperator(
+        task_id="failing_test",
+        depends_on_past=False,
+        bash_command="exit 1",
+        retries=1,
+        on_failure_callback=dag_failure_slack_notification_webhook(source='TASK')
+    )
+```
+
 You can add a custom message (ignoring the slack blocks for a formatted message):
 
 ```python
@@ -127,11 +140,11 @@ with DAG(
     on_failure_callback=dag_failure_slack_notification_webhook(
         text='The task {{ ti.task_id }} failed',
         include_blocks=False
-    ), 
+    ),
 ) as dag:
 ```
 
-Or you can pass your own Slack blocks: 
+Or you can pass your own Slack blocks:
 
 ```python
 custom_slack_blocks = {
@@ -146,6 +159,6 @@ with DAG(
     ...
     on_failure_callback=dag_failure_slack_notification_webhook(
         blocks=custom_slack_blocks
-    ), 
+    ),
 ) as dag:
 ```
