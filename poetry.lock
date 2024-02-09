@@ -1211,17 +1211,17 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.34.37"
+version = "1.34.38"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">= 3.8"
 files = [
-    {file = "boto3-1.34.37-py3-none-any.whl", hash = "sha256:65acfe7f1cf2a9b7df3d4edb87c8022e02685825bd1957e7bb678cc0d09f5e5f"},
-    {file = "boto3-1.34.37.tar.gz", hash = "sha256:73f5ec89cb3ddb3ed577317889fd2f2df783f66b6502a9a4239979607e33bf74"},
+    {file = "boto3-1.34.38-py3-none-any.whl", hash = "sha256:7c70c6ceb2706c7fad6466a5de174fe6d0d6f5f8f1e052bfaad9cbe4e53b64cd"},
+    {file = "boto3-1.34.38.tar.gz", hash = "sha256:e74fbad79bc921a74a9a276ef9f38e1e31153f76690fe9bc5ec790007de36572"},
 ]
 
 [package.dependencies]
-botocore = ">=1.34.37,<1.35.0"
+botocore = ">=1.34.38,<1.35.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.10.0,<0.11.0"
 
@@ -1230,13 +1230,13 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "boto3-stubs"
-version = "1.34.37"
-description = "Type annotations for boto3 1.34.37 generated with mypy-boto3-builder 7.23.1"
+version = "1.34.38"
+description = "Type annotations for boto3 1.34.38 generated with mypy-boto3-builder 7.23.1"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3-stubs-1.34.37.tar.gz", hash = "sha256:c6618c7126bac0337c05e161e9c428febc57d6a24d7ff62de46e67761f402c57"},
-    {file = "boto3_stubs-1.34.37-py3-none-any.whl", hash = "sha256:97b5ca3d3145385acde5af46ca2da3fc74f433545034c36183f389e99771516e"},
+    {file = "boto3-stubs-1.34.38.tar.gz", hash = "sha256:d1e4b4bd5a331620ecdf25ca10f6ab577114ad3c54a0f48b1f38b3f862757990"},
+    {file = "boto3_stubs-1.34.38-py3-none-any.whl", hash = "sha256:0bc0adbbc3e13818774b20a57f580dc471e75be82092b3b548ca2f6925fc28a7"},
 ]
 
 [package.dependencies]
@@ -1286,7 +1286,7 @@ bedrock-agent = ["mypy-boto3-bedrock-agent (>=1.34.0,<1.35.0)"]
 bedrock-agent-runtime = ["mypy-boto3-bedrock-agent-runtime (>=1.34.0,<1.35.0)"]
 bedrock-runtime = ["mypy-boto3-bedrock-runtime (>=1.34.0,<1.35.0)"]
 billingconductor = ["mypy-boto3-billingconductor (>=1.34.0,<1.35.0)"]
-boto3 = ["boto3 (==1.34.37)", "botocore (==1.34.37)"]
+boto3 = ["boto3 (==1.34.38)", "botocore (==1.34.38)"]
 braket = ["mypy-boto3-braket (>=1.34.0,<1.35.0)"]
 budgets = ["mypy-boto3-budgets (>=1.34.0,<1.35.0)"]
 ce = ["mypy-boto3-ce (>=1.34.0,<1.35.0)"]
@@ -1628,13 +1628,13 @@ xray = ["mypy-boto3-xray (>=1.34.0,<1.35.0)"]
 
 [[package]]
 name = "botocore"
-version = "1.34.37"
+version = "1.34.38"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">= 3.8"
 files = [
-    {file = "botocore-1.34.37-py3-none-any.whl", hash = "sha256:2a5bf33aacd2d970afd3d492e179e06ea98a5469030d5cfe7a2ad9995f7bb2ef"},
-    {file = "botocore-1.34.37.tar.gz", hash = "sha256:3c46ddb1679e6ef45ca78b48665398636bda532a07cd476e4b500697d13d9a99"},
+    {file = "botocore-1.34.38-py3-none-any.whl", hash = "sha256:773e49f5bf596191e796b2a15096ff381e61778cbe7c982b381bb9f6bfe5fef3"},
+    {file = "botocore-1.34.38.tar.gz", hash = "sha256:da9754a8e1798706427ede9c9c0a55263bd8e57f217c021807b2946eb4a0c2d8"},
 ]
 
 [package.dependencies]
@@ -1650,13 +1650,13 @@ crt = ["awscrt (==0.19.19)"]
 
 [[package]]
 name = "botocore-stubs"
-version = "1.34.37"
+version = "1.34.38"
 description = "Type annotations and code completion for botocore"
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "botocore_stubs-1.34.37-py3-none-any.whl", hash = "sha256:087cd42973edcb5527dc97eec87fa29fffecc39691249486e02045677d4a2dbe"},
-    {file = "botocore_stubs-1.34.37.tar.gz", hash = "sha256:d6bcea8a6872aa46d389027dc5c022241fd0a2047a8b858aa5005e6151ed30a7"},
+    {file = "botocore_stubs-1.34.38-py3-none-any.whl", hash = "sha256:46832fe6ef544a5e598c98d57f6e47312ae7fb676d4ba182dbf82ed0da4bddbf"},
+    {file = "botocore_stubs-1.34.38.tar.gz", hash = "sha256:da803794c0f704c66e408fe809a143ccc9c7ea9e335e90662ada7d01fc1e5208"},
 ]
 
 [package.dependencies]
@@ -4621,13 +4621,13 @@ python-slugify = ">=1.2.5"
 
 [[package]]
 name = "python-slugify"
-version = "8.0.3"
+version = "8.0.4"
 description = "A Python slugify application that also handles Unicode"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "python-slugify-8.0.3.tar.gz", hash = "sha256:e04cba5f1c562502a1175c84a8bc23890c54cdaf23fccaaf0bf78511508cabed"},
-    {file = "python_slugify-8.0.3-py2.py3-none-any.whl", hash = "sha256:c71189c161e8c671f1b141034d9a56308a8a5978cd13d40446c879569212fdd1"},
+    {file = "python-slugify-8.0.4.tar.gz", hash = "sha256:59202371d1d05b54a9e7720c5e038f928f45daaffe41dd10822f3907b937c856"},
+    {file = "python_slugify-8.0.4-py2.py3-none-any.whl", hash = "sha256:276540b79961052b66b7d116620b36518847f52d5fd9e3a70164fc8c50faa6b8"},
 ]
 
 [package.dependencies]

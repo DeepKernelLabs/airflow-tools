@@ -1,7 +1,8 @@
+import pytest
 from airflow import DAG
 from airflow.operators.bash import BashOperator
 
-from src.airflow_tools.notifications.slack import webhook as slack_webhook
+from airflow_tools.notifications.slack import webhook as slack_webhook
 
 
 def test_webhook_slack_notifications_on_fail(mocker):
@@ -19,3 +20,22 @@ def test_webhook_slack_notifications_on_fail(mocker):
     dag.test()
 
     slack_mock.assert_called_once_with()
+
+
+@pytest.mark.parametrize(
+    'source, expected_text',
+    [
+        (
+            slack_webhook.Source.DAG,
+            "{% for t in dag_run.get_task_instances(state='failed') %}'{{ t.task_id }}', {% endfor %}",
+        ),
+        (slack_webhook.Source.TASK, "{{ task.task_id }}"),
+        ('unkown source', '"unknown source"'),
+    ],
+)
+def test_webhook_block_blocks_format_by_source(source: str, expected_text: str):
+    blocks = slack_webhook._get_message_blocks(
+        text=f'test_{source}', image_url='http://localhost/image.png', source=source
+    )
+    failed_task_info = blocks[0]['text']['text']
+    assert expected_text in failed_task_info
