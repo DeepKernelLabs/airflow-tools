@@ -9,6 +9,11 @@ class S3DataLake(DataLakeProtocol):
     def __init__(self, hook: S3Hook):
         self.hook = hook
 
+    def read(self, path: str) -> bytes:
+        bucket_name, key_name = _get_bucket_and_key_name(path)
+        obj = self.hook.get_key(key_name, bucket_name)
+        return obj.get()["Body"]
+
     def write(self, data: str | bytes | BytesIO, path: str):
         bucket_name, key_name = _get_bucket_and_key_name(path)
         if isinstance(data, str):

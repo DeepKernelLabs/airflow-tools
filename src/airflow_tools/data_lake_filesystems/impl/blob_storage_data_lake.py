@@ -12,6 +12,11 @@ class BlobStorageDataLake(DataLakeProtocol):
     def __init__(self, hook: WasbHook):
         self.hook = hook
 
+    def read(self, path: str) -> bytes:
+        container_name, blob_name = _get_container_and_blob_name(path)
+        stream = self.hook.download(container_name=container_name, blob_name=blob_name)
+        return stream.readall().encode()
+
     def write(self, data: str | bytes | BytesIO, path: str):
         container_name, blob_name = _get_container_and_blob_name(path)
         if isinstance(data, str):

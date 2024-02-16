@@ -54,12 +54,19 @@ TEST_BUCKET=data_lake
 S3_ENDPOINT_URL=http://localhost:9090
 
 AIRFLOW_CONN_DATA_LAKE_TEST='{"conn_type": "aws", "extra": {"endpoint_url": "http://localhost:9090"}}' AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY TEST_BUCKET=data_lake S3_ENDPOINT_URL=http://localhost:9090 poetry run pytest tests/ --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+AIRFLOW_CONN_SFTP_TEST='{"conn_type": "sftp", "host": "localhost", "port": 22, "login": "test_user", "password": "pass"}'
 ```
 
 And you also need to run [Adobe's S3 mock container](https://github.com/adobe/S3Mock) like this:
 
 ```shell
 docker run --rm -p 9090:9090 -e initialBuckets=data_lake -e debug=true -t adobe/s3mock
+```
+
+and the SFTP container like this:
+
+```shell
+docker run -p 22:22 -d atmoz/sftp test_user:pass:::root_folder
 ```
 
 
