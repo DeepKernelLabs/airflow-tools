@@ -3,12 +3,12 @@ from io import BytesIO
 
 from airflow.providers.microsoft.azure.hooks.wasb import WasbHook
 
-from airflow_tools.data_lake_filesystems.data_lake_protocol import DataLakeProtocol
+from airflow_tools.filesystems.filesystem_protocol import FilesystemProtocol
 
 logger = logging.getLogger(__file__)
 
 
-class BlobStorageDataLake(DataLakeProtocol):
+class BlobStorageFilesystem(FilesystemProtocol):
     def __init__(self, hook: WasbHook):
         self.hook = hook
 

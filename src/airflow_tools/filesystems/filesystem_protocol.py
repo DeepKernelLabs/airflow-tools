@@ -2,7 +2,7 @@ from io import BytesIO
 from typing import Protocol
 
 
-class DataLakeProtocol(Protocol):
+class FilesystemProtocol(Protocol):
     def read(self, path: str) -> bytes:
         ...
 

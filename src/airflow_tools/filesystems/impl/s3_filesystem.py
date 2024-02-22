@@ -2,10 +2,10 @@ from io import BytesIO
 
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 
-from airflow_tools.data_lake_filesystems.data_lake_protocol import DataLakeProtocol
+from airflow_tools.filesystems.filesystem_protocol import FilesystemProtocol
 
 
-class S3DataLake(DataLakeProtocol):
+class S3Filesystem(FilesystemProtocol):
     def __init__(self, hook: S3Hook):
         self.hook = hook
 

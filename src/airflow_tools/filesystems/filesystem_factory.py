@@ -3,26 +3,24 @@ from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.providers.microsoft.azure.hooks.wasb import WasbHook
 from airflow.providers.sftp.hooks.sftp import SFTPHook
 
-from airflow_tools.data_lake_filesystems.data_lake_protocol import DataLakeProtocol
-from airflow_tools.data_lake_filesystems.impl.blob_storage_data_lake import (
-    BlobStorageDataLake,
-)
-from airflow_tools.data_lake_filesystems.impl.s3_data_lake import S3DataLake
-from airflow_tools.data_lake_filesystems.impl.sftp_data_lake import SFTPDataLake
+from airflow_tools.filesystems.filesystem_protocol import FilesystemProtocol
+from airflow_tools.filesystems.impl.blob_storage_filesystem import BlobStorageFilesystem
+from airflow_tools.filesystems.impl.s3_filesystem import S3Filesystem
+from airflow_tools.filesystems.impl.sftp_filesystem import SFTPFilesystem
 
 
-class DataLakeFactory:
+class FilesystemFactory:
     @staticmethod
-    def get_data_lake_filesystem(connection: Connection) -> DataLakeProtocol:
+    def get_data_lake_filesystem(connection: Connection) -> FilesystemProtocol:
         if connection.conn_type == "wasb":
             hook = WasbHook(wasb_conn_id=connection.conn_id)
-            return BlobStorageDataLake(hook)
+            return BlobStorageFilesystem(hook)
         elif connection.conn_type == "aws":
             hook = S3Hook(aws_conn_id=connection.conn_id)
-            return S3DataLake(hook)
+            return S3Filesystem(hook)
         elif connection.conn_type == "sftp":
             hook = SFTPHook(ssh_conn_id=connection.conn_id)
-            return SFTPDataLake(hook)
+            return SFTPFilesystem(hook)
         else:
             raise NotImplementedError(
                 f"Data Lake type {connection.conn_type} is not supported"

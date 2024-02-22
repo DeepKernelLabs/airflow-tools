@@ -2,10 +2,10 @@ from io import BytesIO
 
 from airflow.providers.sftp.hooks.sftp import SFTPHook
 
-from airflow_tools.data_lake_filesystems.data_lake_protocol import DataLakeProtocol
+from airflow_tools.filesystems.filesystem_protocol import FilesystemProtocol
 
 
-class SFTPDataLake(DataLakeProtocol):
+class SFTPFilesystem(FilesystemProtocol):
     def __init__(self, hook: SFTPHook):
         self.hook = hook
 
