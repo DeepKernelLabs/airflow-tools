@@ -98,7 +98,10 @@ class HttpBatchOperator(HttpOperator):
 
 
 class HttpToDataLake(BaseOperator):
-    template_fields = list(HttpOperator.template_fields) + ['data_lake_path']
+    template_fields = list(HttpOperator.template_fields) + [
+        'data_lake_path',
+        'jmespath_expression',
+    ]
     template_fields_renderers = HttpOperator.template_fields_renderers
 
     def __init__(
