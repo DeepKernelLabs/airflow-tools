@@ -13,7 +13,7 @@ class FilesystemToFilesystem(BaseOperator):
     Copies a file from a filesystem to another filesystem.
     """
 
-    template_fields = ('file_paths', 'destination_path')
+    template_fields = ('source_file_path', 'destination_path')
 
     def __init__(
         self,
