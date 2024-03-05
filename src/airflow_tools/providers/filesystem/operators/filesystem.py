@@ -4,7 +4,6 @@ from airflow.hooks.base import BaseHook
 from airflow.models import BaseOperator
 from airflow.providers.common.sql.hooks.sql import DbApiHook
 
-from airflow_tools.data_lake_facade import DataLakeFacade
 from airflow_tools.filesystems.filesystem_factory import FilesystemFactory
 
 
@@ -96,8 +95,9 @@ class SQLToFilesystem(BaseOperator):
         ).get_hook()
         source_sql_hook.__schema__ = self.source_schema_name
 
-        data_lake_conn = BaseHook.get_connection(self.destination_fs_conn_id)
-        data_lake_facade = DataLakeFacade(conn=data_lake_conn.get_hook())
+        destination_fs_hook = FilesystemFactory.get_data_lake_filesystem(
+            connection=BaseHook.get_connection(self.destination_fs_conn_id),
+        )
 
         query = f'SELECT * FROM {self.source_table_name};'
         for i, df in enumerate(
@@ -108,4 +108,4 @@ class SQLToFilesystem(BaseOperator):
         ):
             generated_path = f"{self.source_name.lower()}/{self.source_table_name.lower()}/part{i:04}.parquet"
             full_file_path = f"{self.destination_path.rstrip('/')}/{generated_path}"
-            data_lake_facade.write(df.to_parquet(index=False), full_file_path)
+            destination_fs_hook.write(df.to_parquet(index=False), full_file_path)

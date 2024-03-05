@@ -20,7 +20,7 @@ class BlobStorageFilesystem(FilesystemProtocol):
     def write(self, data: str | bytes | BytesIO, path: str):
         container_name, blob_name = _get_container_and_blob_name(path)
         if isinstance(data, str):
-            self.conn.load_string(data, container_name, blob_name)
+            self.hook.load_string(data, container_name, blob_name)
             return
 
         if isinstance(data, BytesIO):
@@ -28,11 +28,11 @@ class BlobStorageFilesystem(FilesystemProtocol):
         logger.info(
             f'Writing to wasb container "{container_name}" and blob "{blob_name}"'
         )
-        self.conn.upload(container_name=container_name, blob_name=blob_name, data=data)
+        self.hook.upload(container_name=container_name, blob_name=blob_name, data=data)
 
     def delete_prefix(self, prefix: str):
         container_name, blob_prefix = _get_container_and_blob_name(prefix)
-        self.conn.delete_file(
+        self.hook.delete_file(
             container_name, blob_prefix, is_prefix=True, ignore_if_missing=True
         )
 
