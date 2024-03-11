@@ -63,8 +63,16 @@ jobs:
         ports:
           - 9090:9090
 
+      sftp:
+        image: atmoz/sftp
+        ports:
+          - 2222:2222
+        env: 
+          SFTP_USERS: test_user:pass:::root_folder
+
     env:
       AIRFLOW_CONN_DATA_LAKE_TEST: '{"conn_type": "aws", "extra": {"endpoint_url": "http://localhost:9090"}}'
+      AIRFLOW_CONN_SFTP_TEST: '{"conn_type": "sftp", "host": "https://localhost", "port": 2222, "login": "test_user", "password": "pass", "extra": {"no_host_key_check": "true", "timeout": "60", "banner_timeout": "60", "conn_timeout": "60"}}'
       AWS_ACCESS_KEY_ID: AKIAIOSFODNN7EXAMPLE
       AWS_SECRET_ACCESS_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
       AWS_DEFAULT_REGION: us-east-1
