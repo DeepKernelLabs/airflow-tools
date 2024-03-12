@@ -62,9 +62,7 @@ class SQLToFilesystem(BaseOperator):
     """
 
     template_fields = (
-        'source_name',
-        'source_schema_name',
-        'source_table_name',
+        'sql',
         'destination_path',
     )
 
@@ -72,9 +70,7 @@ class SQLToFilesystem(BaseOperator):
         self,
         source_sql_conn_id: str,
         destination_fs_conn_id: str,
-        source_name: str,
-        source_schema_name: str,
-        source_table_name: str,
+        sql: str,
         destination_path: str,
         batch_size: Optional[int] = 100000,
         *args,
@@ -83,29 +79,27 @@ class SQLToFilesystem(BaseOperator):
         super().__init__(*args, **kwargs)
         self.source_sql_conn_id = source_sql_conn_id
         self.destination_fs_conn_id = destination_fs_conn_id
-        self.source_name = source_name
-        self.source_schema_name = source_schema_name
-        self.source_table_name = source_table_name
+        self.sql = sql
         self.destination_path = destination_path
         self.batch_size = batch_size
+        self.files = []
 
     def execute(self, context):
         source_sql_hook: DbApiHook = BaseHook.get_connection(
             self.source_sql_conn_id
         ).get_hook()
-        source_sql_hook.__schema__ = self.source_schema_name
 
         destination_fs_hook = FilesystemFactory.get_data_lake_filesystem(
             connection=BaseHook.get_connection(self.destination_fs_conn_id),
         )
 
-        query = f'SELECT * FROM {self.source_table_name};'
+        self.files.clear()
         for i, df in enumerate(
             source_sql_hook.get_pandas_df_by_chunks(
-                sql=query, chunksize=self.batch_size
+                sql=self.sql, chunksize=self.batch_size
             ),
             start=1,
         ):
-            generated_path = f"{self.source_name.lower()}/{self.source_table_name.lower()}/part{i:04}.parquet"
-            full_file_path = f"{self.destination_path.rstrip('/')}/{generated_path}"
-            destination_fs_hook.write(df.to_parquet(index=False), full_file_path)
+            full_file_path = f"{self.destination_path.rstrip('/')}/part{i:04}.parquet"
+            destination_fs_hook.write(df.to_parquet(index=False, engine='pyarrow'), full_file_path)
+            self.files.append(full_file_path)
