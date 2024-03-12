@@ -2,6 +2,7 @@ from typing import Optional, Protocol
 
 from airflow.hooks.base import BaseHook
 from airflow.models import BaseOperator
+from airflow.providers.common.sql.hooks.sql import DbApiHook
 
 from airflow_tools.filesystems.filesystem_factory import FilesystemFactory
 
@@ -26,7 +27,7 @@ class FilesystemToFilesystem(BaseOperator):
         destination_path: str,
         data_transformation: Optional[Transformation] = None,
         *args,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
         self.source_fs_conn_id = source_fs_conn_id
@@ -53,3 +54,54 @@ class FilesystemToFilesystem(BaseOperator):
             else self.destination_path
         )
         destination_fs_hook.write(data, full_destination_path)
+
+
+class SQLToFilesystem(BaseOperator):
+    """
+    Copies data from a SQL query to a filesystem.
+    """
+
+    template_fields = (
+        'sql',
+        'destination_path',
+    )
+
+    def __init__(
+        self,
+        source_sql_conn_id: str,
+        destination_fs_conn_id: str,
+        sql: str,
+        destination_path: str,
+        batch_size: Optional[int] = 100000,
+        *args,
+        **kwargs,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self.source_sql_conn_id = source_sql_conn_id
+        self.destination_fs_conn_id = destination_fs_conn_id
+        self.sql = sql
+        self.destination_path = destination_path
+        self.batch_size = batch_size
+        self.files = []
+
+    def execute(self, context):
+        source_sql_hook: DbApiHook = BaseHook.get_connection(
+            self.source_sql_conn_id
+        ).get_hook()
+
+        destination_fs_hook = FilesystemFactory.get_data_lake_filesystem(
+            connection=BaseHook.get_connection(self.destination_fs_conn_id),
+        )
+
+        self.files.clear()
+        for i, df in enumerate(
+            source_sql_hook.get_pandas_df_by_chunks(
+                sql=self.sql, chunksize=self.batch_size
+            ),
+            start=1,
+        ):
+            full_file_path = f"{self.destination_path.rstrip('/')}/part{i:04}.parquet"
+            destination_fs_hook.write(
+                df.to_parquet(index=False, engine='pyarrow'), full_file_path
+            )
+            self.files.append(full_file_path)
