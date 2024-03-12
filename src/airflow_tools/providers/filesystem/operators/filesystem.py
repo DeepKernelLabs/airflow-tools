@@ -101,5 +101,7 @@ class SQLToFilesystem(BaseOperator):
             start=1,
         ):
             full_file_path = f"{self.destination_path.rstrip('/')}/part{i:04}.parquet"
-            destination_fs_hook.write(df.to_parquet(index=False, engine='pyarrow'), full_file_path)
+            destination_fs_hook.write(
+                df.to_parquet(index=False, engine='pyarrow'), full_file_path
+            )
             self.files.append(full_file_path)

@@ -1,10 +1,10 @@
 import os
-import pytest
 
+import pytest
+from airflow.hooks.base import BaseHook
 from sqlalchemy import create_engine
 from sqlalchemy_utils import create_database as _create_database
 
-from airflow.hooks.base import BaseHook
 from airflow_tools.filesystems.filesystem_factory import FilesystemFactory
 from airflow_tools.filesystems.impl.sftp_filesystem import SFTPFilesystem
 
@@ -29,7 +29,9 @@ def sqlite_database() -> str:
     _create_database(engine.url)
 
     engine.execute('DROP TABLE IF EXISTS TESTING')
-    engine.execute('CREATE TABLE TESTING (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)')
+    engine.execute(
+        'CREATE TABLE TESTING (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)'
+    )
     engine.execute('INSERT INTO TESTING (name, age) VALUES ("John", 25)')
     engine.execute('INSERT INTO TESTING (name, age) VALUES ("Jane", 30)')
     engine.execute('INSERT INTO TESTING (name, age) VALUES ("Mary", 35)')

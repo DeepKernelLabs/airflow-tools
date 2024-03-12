@@ -24,7 +24,10 @@ def test_execute_with_a_single_output(sqlite_database, s3_bucket, monkeypatch):
     sql_to_filesystem_operator.execute({})
 
     assert len(sql_to_filesystem_operator.files) == 1
-    assert sql_to_filesystem_operator.files[0] == f'{s3_bucket}/source1/entity1/part0001.parquet'
+    assert (
+        sql_to_filesystem_operator.files[0]
+        == f'{s3_bucket}/source1/entity1/part0001.parquet'
+    )
 
 
 def test_execute_with_multiple_outputs(sqlite_database, s3_bucket, monkeypatch):
@@ -49,6 +52,15 @@ def test_execute_with_multiple_outputs(sqlite_database, s3_bucket, monkeypatch):
     sql_to_filesystem_operator.execute({})
 
     assert len(sql_to_filesystem_operator.files) == 3
-    assert sql_to_filesystem_operator.files[0] == f'{s3_bucket}/source1/entity1/part0001.parquet'
-    assert sql_to_filesystem_operator.files[1] == f'{s3_bucket}/source1/entity1/part0002.parquet'
-    assert sql_to_filesystem_operator.files[2] == f'{s3_bucket}/source1/entity1/part0003.parquet'
+    assert (
+        sql_to_filesystem_operator.files[0]
+        == f'{s3_bucket}/source1/entity1/part0001.parquet'
+    )
+    assert (
+        sql_to_filesystem_operator.files[1]
+        == f'{s3_bucket}/source1/entity1/part0002.parquet'
+    )
+    assert (
+        sql_to_filesystem_operator.files[2]
+        == f'{s3_bucket}/source1/entity1/part0003.parquet'
+    )
