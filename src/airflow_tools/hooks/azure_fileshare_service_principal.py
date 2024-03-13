@@ -1,8 +1,16 @@
 from airflow.hooks.base import BaseHook
-from azure.identity import ManagedIdentityCredential
+from azure.identity import ClientSecretCredential
 
 
 class AzureFileShareServicePrincipalHook(BaseHook):
+    """
+    Requires defined connection with this structure:
+        conn_type: azure_file_share_sp
+        host: <hostname>
+        login: <service_principal_id>
+        password: <service_principal_secret>
+        extra: {"tenant_id": "<tenant_id>", "share_name": "<share_name>", "protocol": "https"}
+    """
     def __init__(self, conn_id: str):
         super().__init__()
         self.conn_id = conn_id
@@ -15,9 +23,9 @@ class AzureFileShareServicePrincipalHook(BaseHook):
         self.protocol = self.connection.extra_dejson.get("protocol", "https")
 
     def get_token_credentials(self):
-        return ManagedIdentityCredential(
+        return ClientSecretCredential(
             client_id=self.service_principal_id,
-            secret=self.service_principal_secret,
+            client_secret=self.service_principal_secret,
             tenant_id=self.tenant_id,
         )
 
@@ -27,7 +35,7 @@ class AzureFileShareServicePrincipalHook(BaseHook):
         credentials = self.get_token_credentials()
 
         return ShareClient(
-            f"{self.protocol}://{self.host}.file.core.windows.net",
+            account_url=f"{self.protocol}://{self.host}",
             credential=credentials,
             share_name=self.share_name,
             token_intent='backup',
