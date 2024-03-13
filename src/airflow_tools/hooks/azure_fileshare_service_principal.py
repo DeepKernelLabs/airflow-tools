@@ -21,6 +21,9 @@ class AzureFileShareServicePrincipalHook(BaseHook):
         self.tenant_id = self.connection.extra_dejson.get("tenant_id")
         self.share_name = self.connection.extra_dejson.get("share_name")
         self.protocol = self.connection.extra_dejson.get("protocol", "https")
+        
+        self.credentials = self.get_token_credentials()
+        self.account_url = f"{self.protocol}://{self.host}" 
 
     def get_token_credentials(self):
         return ClientSecretCredential(
@@ -32,11 +35,10 @@ class AzureFileShareServicePrincipalHook(BaseHook):
     def get_conn(self):
         from azure.storage.fileshare import ShareClient
 
-        credentials = self.get_token_credentials()
 
         return ShareClient(
-            account_url=f"{self.protocol}://{self.host}",
-            credential=credentials,
+            account_url=self.account_url,
+            credential=self.credentials,
             share_name=self.share_name,
             token_intent='backup',
         )
