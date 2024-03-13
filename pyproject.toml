@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "airflow-tools"
-version = "0.6.4"
+version = "0.7.1"
 
 description = ""
 authors = ["Biel Llobera <biel_llobera@dkl.digital>"]
@@ -25,6 +25,7 @@ apache-airflow = "^2.8"
 flask-session = "0.5.0"
 apache-airflow-providers-sftp = "^4.8.1"
 pyarrow = "^15.0.1"
+mock = "^5.1.0"
 
 [tool.poetry.plugins."apache_airflow_provider"]
 "provider_info" = "airflow_tools.providers.package:get_provider_info"
