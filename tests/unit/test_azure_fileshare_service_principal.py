@@ -53,3 +53,4 @@ def test_azure_fileshare_service_principal(
         == LIST_DIRECTORIES_AND_FILES_EXPECTED_RESULT
     )
     assert isinstance(azure_fileshare_sp_conn, ShareClient)
+
