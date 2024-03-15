@@ -9,6 +9,11 @@ from airflow_tools.filesystems.impl.blob_storage_filesystem import BlobStorageFi
 from airflow_tools.filesystems.impl.local_filesystem import LocalFilesystem
 from airflow_tools.filesystems.impl.s3_filesystem import S3Filesystem
 from airflow_tools.filesystems.impl.sftp_filesystem import SFTPFilesystem
+from airflow_tools.filesystems.impl.azure_file_share_filesystem import AzureFileShareFilesystem
+from airflow_tools.filesystems.impl.azure_databricks_volume_filesystem import AzureDatabricksVolumeFilesystem
+
+from airflow_tools.providers.azure.hooks.azure_databricks import AzureDatabricksVolumeHook
+from airflow_tools.providers.azure.hooks.azure_file_share import AzureFileShareServicePrincipalHook
 
 
 class FilesystemFactory:
@@ -26,6 +31,12 @@ class FilesystemFactory:
         elif connection.conn_type == "fs":
             hook = FSHook(fs_conn_id=connection.conn_id)
             return LocalFilesystem(hook)
+        elif connection.conn_type == "azure_file_share_sp":
+            hook = AzureFileShareServicePrincipalHook(conn_id=connection.conn_id)
+            return AzureFileShareFilesystem(hook)
+        elif connection.conn_type == "azure_databricks_volume":
+            hook = AzureDatabricksVolumeHook(azure_databricks_volume_conn_id=connection.conn_id)
+            return AzureDatabricksVolumeFilesystem(hook)
         else:
             raise NotImplementedError(
                 f"Data Lake type {connection.conn_type} is not supported"
