@@ -1,4 +1,3 @@
-import mock
 import pytest
 from azure.storage.fileshare import ShareClient
 
@@ -33,12 +32,10 @@ def env_var_setup(monkeypatch):
     return True
 
 
-@mock.patch('azure.storage.fileshare.ShareClient.list_directories_and_files')
-def test_azure_fileshare_service_principal(
-    share_client_list_directories_and_files, env_var_setup
-):
-    share_client_list_directories_and_files.return_value = (
-        LIST_DIRECTORIES_AND_FILES_EXPECTED_RESULT
+def test_azure_fileshare_service_principal(env_var_setup, monkeypatch):
+    monkeypatch.setattr(
+        'azure.storage.fileshare.ShareClient.list_directories_and_files',
+        lambda self: LIST_DIRECTORIES_AND_FILES_EXPECTED_RESULT,
     )
 
     azure_fileshare_sp_hook = AzureFileShareServicePrincipalHook(
@@ -53,4 +50,3 @@ def test_azure_fileshare_service_principal(
         == LIST_DIRECTORIES_AND_FILES_EXPECTED_RESULT
     )
     assert isinstance(azure_fileshare_sp_conn, ShareClient)
-
