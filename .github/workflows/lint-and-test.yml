@@ -64,8 +64,7 @@ jobs:
           - 9090:9090
       sftpmock:
         image: atmoz/sftp
-        env:
-          SFTP_USERS: test_user:pass:root_folder
+        options: test_user:pass:::root_folder
         ports:
           - 2222:22
 
