@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "airflow-tools"
-version = "0.6.5"
+version = "0.6.6"
 
 description = ""
 authors = ["Biel Llobera <biel_llobera@dkl.digital>"]
