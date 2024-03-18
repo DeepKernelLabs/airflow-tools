@@ -14,15 +14,15 @@ def get_provider_info() -> Dict[str, Any]:
         "connection-types": [
             {
                 "connection-type": "azure_databricks_sql",
-                "hook-class-name": "azure.hooks.azure_databricks.AzureDatabricksSqlHook",
+                "hook-class-name": "airflow_tools.providers.azure.hooks.azure_databricks.AzureDatabricksSqlHook",
             },
             {
                 "connection-type": "azure_databricks_volume",
-                "hook-class-name": "azure.hooks.azure_databricks.AzureDatabricksVolumeHook",
+                "hook-class-name": "airflow_tools.providers.azure.hooks.azure_databricks.AzureDatabricksVolumeHook",
             },
             {
                 "connection-type": "azure_file_share_sp",
-                "hook-class-name": "azure.hooks.azure_file_share.AzureFileShareServicePrincipalHook",
+                "hook-class-name": "airflow_tools.providers.azure.hooks.azure_file_share.AzureFileShareServicePrincipalHook",
             },
         ],
         "extra-links": [],
