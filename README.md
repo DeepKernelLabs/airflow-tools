@@ -1,12 +1,46 @@
 # Airflow Tools
-![Workflow](https://github.com/DeepKernelLabs/airflow-tools/actions/workflows/lint-and-test.yml/badge.svg?branch=main)
+<div align="center">
+  <!-- Logo -->
+  <img src="https://files.oaiusercontent.com/file-N6cWevXhyVzAQZhcbeSwt3ow?se=2024-03-19T10%3A30%3A46Z&sp=r&sv=2021-08-06&sr=b&rscc=max-age%3D31536000%2C%20immutable&rscd=attachment%3B%20filename%3D1a1db13e-8e8c-4966-a39b-9613fd9b6384.webp&sig=mVvKdDksDPMeWD6%2B%2B5E0HhrewCPnJscle6Jeh%2BMyLtQ%3D" alt="logo" width="400"/>
+
+  <!-- Add some space between the logo and badges -->
+  <br/>
+
+  <!-- Badges -->
+  <a href="https://github.com/DeepKernelLabs/airflow-tools/actions?query=branch%3Amain">
+    <img src="https://github.com/DeepKernelLabs/airflow-tools/actions/workflows/lint-and-test.yml/badge.svg?branch=main" alt="Badge 1"/>
+  </a>
+  <a href="https://opensource.org/licenses/Apache-2.0">
+    <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="Badge 2"/>
+  </a>
+  <a href="https://img.shields.io/badge/python-3.10%20%7C%203.11-blue">
+    <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11-blue" alt="Badge 3"/>
+  </a>
+
+  <br/><br/>
+</div>
 
 Collection of Operators, Hooks and utility functions aimed at facilitating ELT pipelines.
 
-## Data Lake Facade
-The Data Lake Facade serves as an abstracion over different Hooks that can be used as a backend such as:
-- Azure Data Lake Storage (ADLS)
-- Simple Storage Service (S3)
+## Overview
+
+This is an opinionated library focused on ELT, which means that our goal is to facilitate loading data from various data sources into a data lake, as well as loading from a data lake to a data warehouse and running transformations inside a data warehouse. 
+
+Airflow's operators notoriously suffer from an NxM problem, where if you have N data sources and M destinations you end up with NxM different operators (FTPToS3, S3ToFTP, PostgresToS3, FTPToPostgres etc.). We aim to mitigate this issue in two ways:
+
+1. **ELT focused:** cuts down on the number of possible sources and destinations, as we always want to do `source` -> `data lake` -> `data warehouse`.
+2. **Building common interfaces:** where possible we want to treat similar data sources in the same way. Airflow recently has done a good job at this by deprecating all specific SQL operators (`PostgresOperator`, `MySQLOperator`, etc.) in favour of a more generic `SQLExecuteQueryOperator` that works with any hook compatible with the dbapi2 interface. We take this philosophy and apply it any time we can, like providing a unified interface for all filesystem data sources that then enables us to have much more generic operators like `SQLToFilesystem`, `FilesystemToFilesystem`.
+
+## Filesystem Interface/Protocol
+
+We provide a thin wrapper over many hooks for filesystem data sources. These wrappers use the hook's specific methods to implement some common methods that we then use inside the operators without needing to worry about the hook's specific type. For now we provide support for the following filesystem hooks, some of them native or that belong to other providers and others implemented in this library:
+
+- WasbHook (Blob Storage/ADLS)
+- S3Hook (S3)
+- SFTPHook (SFTP)
+- FSHook (Local Filesystem)
+- AzureFileShareServicePrincipalHook (Azure Fileshare with support for service principal authentication)
+- AzureDatabricksVolumeHook (Unity Catalog Columes)
 
 Operators can create the correct hook at runtime by passing a connection ID with a connection type of `aws` or `adls`. Example code:
 
