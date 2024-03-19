@@ -62,11 +62,12 @@ jobs:
           initialBuckets: data_lake
         ports:
           - 9090:9090
-      sftpmock:
-        image: atmoz/sftp
-        options: test_user:pass:::root_folder
-        ports:
-          - 2222:22
+      # sftpmock:
+      #   image: atmoz/sftp
+      #   env:
+      #     SFTP_USERS: test_user:pass:::root_folder
+      #   ports:
+      #     - 2222:22
 
     env:
       AIRFLOW_CONN_DATA_LAKE_TEST: '{"conn_type": "aws", "extra": {"endpoint_url": "http://localhost:9090"}}'
@@ -106,6 +107,9 @@ jobs:
       - name: Initialize database
         run: |
           poetry run airflow db init
+      - name: Start SFTP server
+        run: |
+          docker run -p 2222:22 -d atmoz/sftp test_user:pass:::root_folder
       - name: Run tests with pytest
         run: |
           poetry run pytest tests/ --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
