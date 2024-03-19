@@ -62,12 +62,6 @@ jobs:
           initialBuckets: data_lake
         ports:
           - 9090:9090
-      # sftpmock:
-      #   image: atmoz/sftp
-      #   env:
-      #     SFTP_USERS: test_user:pass:::root_folder
-      #   ports:
-      #     - 2222:22
 
     env:
       AIRFLOW_CONN_DATA_LAKE_TEST: '{"conn_type": "aws", "extra": {"endpoint_url": "http://localhost:9090"}}'
