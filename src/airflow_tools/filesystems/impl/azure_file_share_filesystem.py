@@ -2,8 +2,11 @@ import logging
 from io import BytesIO
 
 from azure.storage.fileshare._models import DirectoryProperties
+
 from airflow_tools.filesystems.filesystem_protocol import FilesystemProtocol
-from airflow_tools.providers.azure.hooks.azure_file_share import AzureFileShareServicePrincipalHook
+from airflow_tools.providers.azure.hooks.azure_file_share import (
+    AzureFileShareServicePrincipalHook,
+)
 
 logger = logging.getLogger(__file__)
 
@@ -30,3 +33,11 @@ class AzureFileShareFilesystem(FilesystemProtocol):
             else:
                 conn.get_file_client(f'{prefix}/{item.name}').delete_file()
         conn.get_directory_client(prefix).delete_directory()
+
+    def list_files(self, prefix: str) -> list[str]:
+        conn = self.hook.get_conn()
+        return [
+            f'{prefix}/{item.name}'
+            for item in conn.list_directories_and_files(prefix)
+            if not item.is_directory
+        ]

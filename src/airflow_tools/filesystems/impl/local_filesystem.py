@@ -12,7 +12,7 @@ class LocalFilesystem(FilesystemProtocol):
         self.hook = hook
 
     def read(self, path: str) -> bytes:
-        (Path(self.hook.get_path()) / path).read_bytes()
+        return (Path(self.hook.get_path()) / path).read_bytes()
 
     def write(self, data: str | bytes | BytesIO, path: str):
         if isinstance(data, str):
@@ -24,3 +24,7 @@ class LocalFilesystem(FilesystemProtocol):
     def delete_prefix(self, prefix: str):
         path_to_delete = Path(self.hook.get_path()) / prefix
         shutil.rmtree(str(path_to_delete))
+
+    def list_files(self, prefix: str) -> list[str]:
+        path_to_list = Path(self.hook.get_path()) / prefix
+        return [str(file) for file in path_to_list.glob("*") if file.is_file()]

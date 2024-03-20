@@ -28,3 +28,6 @@ class SFTPFilesystem(FilesystemProtocol):
         for file in self.hook.list_directory(prefix):
             self.hook.delete_file(prefix.rstrip('/') + '/' + file)
         self.hook.delete_directory(prefix)
+
+    def list_files(self, prefix: str) -> list[str]:
+        return self.hook.list_directory(prefix)

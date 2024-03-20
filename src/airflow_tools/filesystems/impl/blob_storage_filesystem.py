@@ -36,6 +36,10 @@ class BlobStorageFilesystem(FilesystemProtocol):
             container_name, blob_prefix, is_prefix=True, ignore_if_missing=True
         )
 
+    def list_files(self, prefix: str) -> list[str]:
+        container_name, blob_prefix = _get_container_and_blob_name(prefix)
+        return self.hook.get_blobs_list(container_name, blob_prefix)
+
 
 def _get_container_and_blob_name(path: str) -> tuple[str, str]:
     parts = path.split("/")
