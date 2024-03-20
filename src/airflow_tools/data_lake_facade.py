@@ -94,27 +94,6 @@ class DataLakeFacade:
                     f"Data Lake type {self.conn.conn_type} does not support check_for_prefix"
                 )
 
-    """
-    def check_specific_file_at_prefix(self, prefix: str, filename: str='__SUCCESS__') -> bool:
-        match self.conn.conn_type:
-            case "wasb":
-                assert isinstance(self.conn, WasbHook)
-                container_name, blob_prefix = _get_container_and_blob_name(prefix)
-                return f'{prefix}/{filename}' in self.conn.get_blobs_list(
-                        container_name=container_name, prefix=blob_prefix
-                    )
-
-            case "aws":
-                assert isinstance(self.conn, S3Hook)
-                bucket_name, key_prefix = _get_bucket_and_key_name(prefix)
-                object_list_at_bucket = list(self.conn.get_bucket(bucket_name).objects.filter(Prefix=f'{key_prefix}/{filename}').all())
-                return bool(object_list_at_bucket)
-            case _:
-                raise NotImplementedError(
-                    f"Data Lake type {self.conn.conn_type} does not support check_for_prefix"
-                )
-    """
-
 
 def _get_container_and_blob_name(path: str) -> tuple[str, str]:
     parts = path.split("/")
