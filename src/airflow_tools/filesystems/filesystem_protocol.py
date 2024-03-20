@@ -11,3 +11,6 @@ class FilesystemProtocol(Protocol):
 
     def delete_prefix(self, prefix: str):
         ...
+
+    def list_files(self, prefix: str) -> list[str]:
+        ...

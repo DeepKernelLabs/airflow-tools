@@ -23,7 +23,7 @@ class FilesystemToFilesystem(BaseOperator):
         self,
         source_fs_conn_id: str,
         destination_fs_conn_id: str,
-        source_file_path: str,
+        source_path: str,
         destination_path: str,
         data_transformation: Optional[Transformation] = None,
         *args,
@@ -32,7 +32,7 @@ class FilesystemToFilesystem(BaseOperator):
         super().__init__(*args, **kwargs)
         self.source_fs_conn_id = source_fs_conn_id
         self.destination_fs_conn_id = destination_fs_conn_id
-        self.source_file_path = source_file_path
+        self.source_path = source_path
         self.destination_path = destination_path
         self.data_transformation = data_transformation
 
@@ -44,16 +44,17 @@ class FilesystemToFilesystem(BaseOperator):
             connection=BaseHook.get_connection(self.destination_fs_conn_id),
         )
 
-        file_name = self.source_file_path.split('/')[-1]
-        data = source_fs_hook.read(self.source_file_path)
-        if self.data_transformation:
-            data = self.data_transformation(data, file_name, context)
-        full_destination_path = (
-            self.destination_path + file_name
-            if self.destination_path.endswith('/')
-            else self.destination_path
-        )
-        destination_fs_hook.write(data, full_destination_path)
+        for file_path in source_fs_hook.list_files(self.source_path):
+            file_name = file_path.split('/')[-1]
+            data = source_fs_hook.read(file_path)
+            if self.data_transformation:
+                data = self.data_transformation(data, file_name, context)
+            full_destination_path = (
+                self.destination_path + file_name
+                if self.destination_path.endswith('/')
+                else self.destination_path
+            )
+            destination_fs_hook.write(data, full_destination_path)
 
 
 class SQLToFilesystem(BaseOperator):

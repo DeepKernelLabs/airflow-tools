@@ -27,6 +27,10 @@ class S3Filesystem(FilesystemProtocol):
         bucket_name, key_prefix = _get_bucket_and_key_name(prefix)
         self.hook.get_bucket(bucket_name).objects.filter(Prefix=key_prefix).delete()
 
+    def list_files(self, prefix: str) -> list[str]:
+        bucket_name, key_prefix = _get_bucket_and_key_name(prefix)
+        return [obj.key for obj in self.hook.list_keys(bucket_name, key_prefix)]
+
 
 def _get_bucket_and_key_name(path: str) -> tuple[str, str]:
     parts = path.split("/")
