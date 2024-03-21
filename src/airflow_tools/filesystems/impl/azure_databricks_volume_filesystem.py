@@ -39,3 +39,7 @@ class AzureDatabricksVolumeFilesystem(FilesystemProtocol):
             for entry in conn.list_directory_contents(prefix)
             if not entry.is_directory
         ]
+
+    def check_prefix(self, prefix: str) -> bool:
+        conn = self.hook.get_conn()
+        return bool(conn.list_directory_contents(prefix))

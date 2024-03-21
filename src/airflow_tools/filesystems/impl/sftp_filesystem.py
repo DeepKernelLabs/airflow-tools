@@ -31,3 +31,6 @@ class SFTPFilesystem(FilesystemProtocol):
 
     def list_files(self, prefix: str) -> list[str]:
         return self.hook.list_directory(prefix)
+    
+    def check_prefix(self, prefix: str) -> bool:
+        return bool(self.hook.list_directory(prefix))

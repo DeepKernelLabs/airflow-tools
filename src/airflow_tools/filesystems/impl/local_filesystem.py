@@ -28,3 +28,7 @@ class LocalFilesystem(FilesystemProtocol):
     def list_files(self, prefix: str) -> list[str]:
         path_to_list = Path(self.hook.get_path()) / prefix
         return [str(file) for file in path_to_list.glob("*") if file.is_file()]
+
+    def check_prefix(self, prefix: str) -> bool:
+        path_to_check = Path(self.hook.get_path()) / prefix
+        return path_to_check.exists()

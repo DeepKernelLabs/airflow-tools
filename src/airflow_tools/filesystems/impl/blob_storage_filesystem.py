@@ -39,6 +39,10 @@ class BlobStorageFilesystem(FilesystemProtocol):
     def list_files(self, prefix: str) -> list[str]:
         container_name, blob_prefix = _get_container_and_blob_name(prefix)
         return self.hook.get_blobs_list(container_name, blob_prefix)
+    
+    def check_prefix(self, prefix: str) -> bool:
+        container_name, blob_prefix = _get_container_and_blob_name(prefix)
+        return bool(self.hook.get_blobs_list(container_name, blob_prefix))
 
 
 def _get_container_and_blob_name(path: str) -> tuple[str, str]:

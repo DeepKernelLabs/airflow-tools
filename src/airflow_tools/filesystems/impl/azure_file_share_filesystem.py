@@ -41,3 +41,7 @@ class AzureFileShareFilesystem(FilesystemProtocol):
             for item in conn.list_directories_and_files(prefix)
             if not item.is_directory
         ]
+        
+    def check_prefix(self, prefix: str) -> bool:
+        conn = self.hook.get_conn()
+        return bool(conn.list_directories_and_files(prefix))
