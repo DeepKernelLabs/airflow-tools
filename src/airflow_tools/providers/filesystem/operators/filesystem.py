@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from typing import Optional, Protocol
 
 from airflow.hooks.base import BaseHook
@@ -5,6 +7,17 @@ from airflow.models import BaseOperator
 from airflow.providers.common.sql.hooks.sql import DbApiHook
 
 from airflow_tools.filesystems.filesystem_factory import FilesystemFactory
+from airflow_tools.filesystems.impl.blob_storage_filesystem import BlobStorageFilesystem
+from airflow_tools.filesystems.impl.s3_filesystem import S3Filesystem
+
+if TYPE_CHECKING:
+    from airflow.utils.context import Context
+
+
+import logging
+
+logger = logging.getLogger(__file__)
+
 
 
 class Transformation(Protocol):
@@ -106,3 +119,54 @@ class SQLToFilesystem(BaseOperator):
                 df.to_parquet(index=False, engine='pyarrow'), full_file_path
             )
             self.files.append(full_file_path)
+
+
+class FilesystemDeleteOperator(BaseOperator):
+    template_fields = ('filesystem_path',)
+
+    def __init__(self, filesystem_conn_id: str, filesystem_path: str, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.filesystem_conn_id = filesystem_conn_id
+        self.filesystem_path = filesystem_path
+
+    def execute(self, context: 'Context'):
+        filesystem_protocol = FilesystemFactory.get_data_lake_filesystem(
+            connection=BaseHook.get_connection(self.filesystem_conn_id),
+        )
+        filesystem_protocol.delete_prefix(self.filesystem_path)
+
+
+
+class FilesystemCheckOperator(BaseOperator):
+    template_fields = ('filesystem_path',)
+
+    def __init__(
+        self,
+        filesystem_conn_id: str,
+        filesystem_path: str,
+        check_specific_filename: None | str = None,
+        *args,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+        self.filesystem_conn_id = filesystem_conn_id
+        self.filesystem_path = filesystem_path
+        self.check_specific_filename = check_specific_filename
+
+    def execute(self, context: 'Context'):
+        filesystem_protocol = FilesystemFactory.get_data_lake_filesystem(
+            connection=BaseHook.get_connection(self.filesystem_conn_id),
+        )
+
+        logger.info(f'Checking {self.filesystem_path}')
+        prefix_flag = filesystem_protocol.check_prefix(self.filesystem_path)
+        
+        logger.info(f'Prefix flag: {prefix_flag}')
+        if self.check_specific_filename:
+            logger.info(f'Checking {self.check_specific_filename}')
+            specific_file_flag = filesystem_protocol.check_prefix(
+                f'{self.filesystem_path}{self.check_specific_filename}'
+            )
+            logger.info(f'Specific file flag: {specific_file_flag}')
+            return prefix_flag and specific_file_flag
+        return prefix_flag
