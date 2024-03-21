@@ -17,6 +17,7 @@ class DataLakeDeleteOperator(BaseOperator):
     template_fields = ('data_lake_path',)
 
     def __init__(self, data_lake_conn_id: str, data_lake_path: str, *args, **kwargs):
+        logger.warning('DataLakeDeleteOperator is deprecated. Use FilesystemDeleteOperator instead.')
         super().__init__(*args, **kwargs)
         self.data_lake_conn_id = data_lake_conn_id
         self.data_lake_path = data_lake_path
@@ -40,6 +41,7 @@ class DataLakeCheckOperator(BaseOperator):
         *args,
         **kwargs,
     ):
+        logger.warning('DataLakeCheckOperator is deprecated. Use FilesytemCheckOperator instead.')
         super().__init__(*args, **kwargs)
         self.data_lake_conn_id = data_lake_conn_id
         self.data_lake_path = data_lake_path
