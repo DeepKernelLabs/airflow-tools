@@ -17,7 +17,7 @@ from airflow.utils.helpers import merge_dicts
 from requests import Response
 
 from airflow_tools.compression_utils import CompressionOptions, compress
-from airflow_tools.data_lake_facade import DataLakeFacade
+from airflow_tools.filesystems.filesystem_factory import FilesystemFactory
 from airflow_tools.exceptions import ApiResponseTypeError
 
 if TYPE_CHECKING:
@@ -158,14 +158,13 @@ class HttpToDataLake(BaseOperator):
             ),
             start=1,
         ):
-            data_lake_conn = BaseHook.get_connection(self.data_lake_conn_id)
-            data_lake_facade = DataLakeFacade(
-                conn=data_lake_conn.get_hook(),
+            filesystem_protocol = FilesystemFactory.get_data_lake_filesystem(
+                connection=BaseHook.get_connection(self.data_lake_conn_id),
             )
 
             file_path = self.data_lake_path.rstrip('/') + '/' + self._file_name(i)
 
-            data_lake_facade.write(data, file_path)
+            filesystem_protocol.write(data, file_path)
 
     def _file_name(self, n_part) -> str:
         file_name = f'part{n_part:04}.{self.save_format}'
