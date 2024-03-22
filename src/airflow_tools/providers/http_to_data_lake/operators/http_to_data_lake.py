@@ -176,14 +176,12 @@ class HttpToDataLake(BaseOperator):
         return file_name
 
     def _response_filter(self, response) -> BytesIO:
-        if not self.jmespath_expression:
+        if self.save_format in self.text_response_save_format:
+            self.data = response.text
+            
+        elif not self.jmespath_expression:
             self.data = response.json()
 
-        elif (
-            self.jmespath_expression
-            and self.save_format in self.text_response_save_format
-        ):
-            self.data = response.text
         else:
             self.data = jmespath.search(self.jmespath_expression, response.json())
 
