@@ -155,14 +155,16 @@ class FilesystemCheckOperator(BaseOperator):
         filesystem_protocol = FilesystemFactory.get_data_lake_filesystem(
             connection=BaseHook.get_connection(self.filesystem_conn_id),
         )
-
+        #TODO you can simplify this by using the check_file function directly if the check_specific_filename is not None.
+        # Since the specific file is on the prefix folder, you can just check if the file exists, since if it does, the prefix exists
+        # If the file does not exist, the existance of the prefix do not matter and the check will return False
         logger.info(f'Checking {self.filesystem_path}')
         prefix_flag = filesystem_protocol.check_prefix(self.filesystem_path)
         
         logger.info(f'Prefix flag: {prefix_flag}')
         if self.check_specific_filename:
             logger.info(f'Checking {self.check_specific_filename}')
-            specific_file_flag = filesystem_protocol.check_prefix(
+            specific_file_flag = filesystem_protocol.check_prefix( # TODO change check_prefix to check_file and implement the function on the filesystem protocol
                 f'{self.filesystem_path}{self.check_specific_filename}'
             )
             logger.info(f'Specific file flag: {specific_file_flag}')
