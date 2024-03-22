@@ -176,20 +176,25 @@ class HttpToDataLake(BaseOperator):
         return file_name
 
     def _response_filter(self, response) -> BytesIO:
-        if self.jmespath_expression and self.save_format in self.json_response_save_format:
+        if (
+            self.jmespath_expression
+            and self.save_format in self.json_response_save_format
+        ):
             self.data = jmespath.search(self.jmespath_expression, response.json())
-            
-        elif self.jmespath_expression and self.save_format not in self.json_response_save_format:
+
+        elif (
+            self.jmespath_expression
+            and self.save_format not in self.json_response_save_format
+        ):
             raise ApiResponseTypeError(
                 'JMESPath expression is only supported for json and jsonl save formats'
             )
-            
+
         elif self.save_format in self.json_response_save_format:
             self.data = response.json()
-            
+
         else:
             self.data = response.text
-        
 
         match self.save_format:
             case 'json':
@@ -203,17 +208,9 @@ class HttpToDataLake(BaseOperator):
                 return list_to_jsonl(self.data, self.compression)
 
             case 'xml':
-                if not isinstance(self.data, str):
-                    raise ApiResponseTypeError(
-                        'Expected response can\'t be transformed to xml. It is not a string'
-                    )
                 return xml_to_binary(self.data, self.compression)
 
             case 'parquet':
-                if not isinstance(self.data, str):
-                    raise ApiResponseTypeError(
-                        'Expected response can\'t be transformed to parquet. It is not a string'
-                    )
                 return parquet_to_binary(self.data, self.compression)
 
             case _:
