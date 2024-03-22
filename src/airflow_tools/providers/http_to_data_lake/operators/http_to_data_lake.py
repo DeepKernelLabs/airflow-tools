@@ -104,6 +104,8 @@ class HttpToDataLake(BaseOperator):
     ]
     template_fields_renderers = HttpOperator.template_fields_renderers
 
+    text_response_save_format = ['parquet', 'xml']
+
     def __init__(
         self,
         http_conn_id: str,
@@ -176,6 +178,12 @@ class HttpToDataLake(BaseOperator):
     def _response_filter(self, response) -> BytesIO:
         if not self.jmespath_expression:
             self.data = response.json()
+
+        elif (
+            self.jmespath_expression
+            and self.save_format in self.text_response_save_format
+        ):
+            self.data = response.text
         else:
             self.data = jmespath.search(self.jmespath_expression, response.json())
 
@@ -189,6 +197,20 @@ class HttpToDataLake(BaseOperator):
                         'Expected response can\'t be transformed to jsonl. It is not  list[dict]'
                     )
                 return list_to_jsonl(self.data, self.compression)
+
+            case 'xml':
+                if not isinstance(self.data, str):
+                    raise ApiResponseTypeError(
+                        'Expected response can\'t be transformed to xml. It is not a string'
+                    )
+                return xml_to_binary(self.data, self.compression)
+
+            case 'parquet':
+                if not isinstance(self.data, str):
+                    raise ApiResponseTypeError(
+                        'Expected response can\'t be transformed to parquet. It is not a string'
+                    )
+                return parquet_to_binary(self.data, self.compression)
 
             case _:
                 raise NotImplementedError(f'Unknown save_format: {self.save_format}')
@@ -206,4 +228,18 @@ def json_to_binary(data: dict, compression: 'CompressionOptions') -> BytesIO:
     json_string = json.dumps(data).encode()
     compressed_json = compress(compression, json_string)
     out = BytesIO(compressed_json)
+    return out
+
+
+def parquet_to_binary(data: str, compression: 'CompressionOptions') -> BytesIO:
+    parquet_df = pd.DataFrame(StringIO(data))
+    out = BytesIO()
+    parquet_df.to_parquet(out, compression=compression)
+    out.seek(0)
+    return out
+
+
+def xml_to_binary(data: str, compression: 'CompressionOptions') -> BytesIO:
+    compressed_xml = compress(compression, data.encode())
+    out = BytesIO(compressed_xml)
     return out
