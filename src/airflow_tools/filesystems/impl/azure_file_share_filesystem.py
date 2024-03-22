@@ -44,4 +44,4 @@ class AzureFileShareFilesystem(FilesystemProtocol):
         
     def check_prefix(self, prefix: str) -> bool:
         conn = self.hook.get_conn()
-        return bool(conn.list_directories_and_files(prefix))
+        return conn.get_directory_client(prefix).exists()
