@@ -104,7 +104,7 @@ class HttpToDataLake(BaseOperator):
     ]
     template_fields_renderers = HttpOperator.template_fields_renderers
 
-    text_response_save_format = ['parquet', 'xml']
+    json_response_save_format = ['json', 'jsonl']
 
     def __init__(
         self,
@@ -176,14 +176,20 @@ class HttpToDataLake(BaseOperator):
         return file_name
 
     def _response_filter(self, response) -> BytesIO:
-        if self.save_format in self.text_response_save_format:
-            self.data = response.text
-            
-        elif not self.jmespath_expression:
-            self.data = response.json()
-
-        else:
+        if self.jmespath_expression and self.save_format in self.json_response_save_format:
             self.data = jmespath.search(self.jmespath_expression, response.json())
+            
+        elif self.jmespath_expression and self.save_format not in self.json_response_save_format:
+            raise ApiResponseTypeError(
+                'JMESPath expression is only supported for json and jsonl save formats'
+            )
+            
+        elif self.save_format in self.json_response_save_format:
+            self.data = response.json()
+            
+        else:
+            self.data = response.text
+        
 
         match self.save_format:
             case 'json':
