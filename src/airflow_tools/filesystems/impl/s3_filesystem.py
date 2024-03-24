@@ -23,19 +23,32 @@ class S3Filesystem(FilesystemProtocol):
         else:
             self.hook.load_file_obj(data, key_name, bucket_name)
 
+    def delete_file(self, path: str):
+        bucket_name, key_name = _get_bucket_and_key_name(path)
+        self.hook.delete_objects(bucket_name, [key_name])
+
+    def create_prefix(self, prefix: str):
+        bucket_name, key_prefix = _get_bucket_and_key_name(prefix)
+        self.hook.create_bucket(bucket_name)
+        self.hook.load_string("", key_prefix, bucket_name)
+
     def delete_prefix(self, prefix: str):
         bucket_name, key_prefix = _get_bucket_and_key_name(prefix)
         self.hook.get_bucket(bucket_name).objects.filter(Prefix=key_prefix).delete()
 
-    def list_files(self, prefix: str) -> list[str]:
-        bucket_name, key_prefix = _get_bucket_and_key_name(prefix)
-        return [obj.key for obj in self.hook.list_keys(bucket_name, key_prefix)]
+    def check_file(self, path: str) -> bool:
+        bucket_name, key_name = _get_bucket_and_key_name(path)
+        return self.hook.check_for_key(key=key_name, bucket_name=bucket_name)
 
     def check_prefix(self, prefix: str) -> bool:
         bucket_name, key_prefix = _get_bucket_and_key_name(prefix)
         return self.hook.check_for_prefix(
             prefix=key_prefix, bucket_name=bucket_name, delimiter="/"
         )
+
+    def list_files(self, prefix: str) -> list[str]:
+        bucket_name, key_prefix = _get_bucket_and_key_name(prefix)
+        return [obj.key for obj in self.hook.list_keys(bucket_name, key_prefix)]
 
 
 def _get_bucket_and_key_name(path: str) -> tuple[str, str]:

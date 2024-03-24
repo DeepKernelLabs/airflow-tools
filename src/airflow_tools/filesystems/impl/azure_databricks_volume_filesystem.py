@@ -23,6 +23,12 @@ class AzureDatabricksVolumeFilesystem(FilesystemProtocol):
             data = data.getvalue()
         self.hook.get_conn().files.upload(path, data)
 
+    def delete_file(self, path: str):
+        self.hook.get_conn().files.delete(path)
+
+    def create_prefix(self, prefix: str):
+        self.hook.get_conn().files.create_directory(prefix)
+
     def delete_prefix(self, prefix: str):
         conn = self.hook.get_conn()
         for entry in conn.list_directory_contents(prefix):
@@ -32,14 +38,20 @@ class AzureDatabricksVolumeFilesystem(FilesystemProtocol):
                 conn.files.delete(entry.path)
         conn.files.delete_directory(prefix)
 
-    def list_files(self, prefix: str) -> list[str]:
-        conn = self.hook.get_conn()
-        return [
-            entry.path
-            for entry in conn.list_directory_contents(prefix)
+    def check_file(self, path: str) -> bool:
+        prefix = path.rsplit("/", 1)[0]
+        return bool(
+            entry.path == path
+            for entry in self.hook.get_conn().list_directory_contents(prefix)
             if not entry.is_directory
-        ]
+        )
 
     def check_prefix(self, prefix: str) -> bool:
-        conn = self.hook.get_conn()
-        return bool(conn.list_directory_contents(prefix, page_size=1))
+        return bool(self.hook.get_conn().list_directory_contents(prefix, page_size=1))
+
+    def list_files(self, prefix: str) -> list[str]:
+        return [
+            entry.path
+            for entry in self.hook.get_conn().list_directory_contents(prefix)
+            if not entry.is_directory
+        ]

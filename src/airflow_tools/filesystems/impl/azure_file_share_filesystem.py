@@ -25,6 +25,12 @@ class AzureFileShareFilesystem(FilesystemProtocol):
             data = data.getvalue()
         self.hook.get_conn().get_file_client(path).upload_file(data)
 
+    def delete_file(self, path: str):
+        self.hook.get_conn().get_file_client(path).delete_file()
+
+    def create_prefix(self, prefix: str):
+        self.hook.get_conn().get_directory_client(prefix).create_directory()
+
     def delete_prefix(self, prefix: str):
         conn = self.hook.get_conn()
         for item in conn.list_directories_and_files(prefix):
@@ -34,14 +40,15 @@ class AzureFileShareFilesystem(FilesystemProtocol):
                 conn.get_file_client(f'{prefix}/{item.name}').delete_file()
         conn.get_directory_client(prefix).delete_directory()
 
+    def check_file(self, path: str) -> bool:
+        return self.hook.get_conn().get_file_client(path).exists()
+
+    def check_prefix(self, prefix: str) -> bool:
+        return self.hook.get_conn().get_directory_client(prefix).exists()
+
     def list_files(self, prefix: str) -> list[str]:
-        conn = self.hook.get_conn()
         return [
             f'{prefix}/{item.name}'
-            for item in conn.list_directories_and_files(prefix)
+            for item in self.hook.get_conn().list_directories_and_files(prefix)
             if not item.is_directory
         ]
-        
-    def check_prefix(self, prefix: str) -> bool:
-        conn = self.hook.get_conn()
-        return conn.get_directory_client(prefix).exists()
