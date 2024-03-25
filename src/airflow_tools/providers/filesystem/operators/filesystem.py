@@ -120,29 +120,6 @@ class FilesystemToFilesystem(BaseOperator):
             destination_fs_hook.write(data, full_destination_path)
 
 
-class FilesystemCreateOperator(BaseOperator):
-    template_fields = ('filesystem_path',)
-
-    def __init__(
-        self,
-        filesystem_conn_id: str,
-        filesystem_path: str,
-        *args,
-        **kwargs,
-    ):
-        super().__init__(*args, **kwargs)
-        self.filesystem_conn_id = filesystem_conn_id
-        self.filesystem_path = filesystem_path
-
-    def execute(self, context: 'Context'):
-        filesystem_protocol = FilesystemFactory.get_data_lake_filesystem(
-            connection=BaseHook.get_connection(self.filesystem_conn_id),
-        )
-
-        if not filesystem_protocol.check_prefix(self.filesystem_path):
-            filesystem_protocol.create_prefix(self.filesystem_path)
-
-
 class FilesystemDeleteOperator(BaseOperator):
     template_fields = ('filesystem_path',)
 
@@ -155,7 +132,8 @@ class FilesystemDeleteOperator(BaseOperator):
         filesystem_protocol = FilesystemFactory.get_data_lake_filesystem(
             connection=BaseHook.get_connection(self.filesystem_conn_id),
         )
-        filesystem_protocol.delete_prefix(self.filesystem_path)
+        if filesystem_protocol.check_prefix(self.filesystem_path):
+            filesystem_protocol.delete_prefix(self.filesystem_path)
 
 
 class FilesystemCheckOperator(BaseOperator):
@@ -165,22 +143,20 @@ class FilesystemCheckOperator(BaseOperator):
         self,
         filesystem_conn_id: str,
         filesystem_path: str,
-        check_specific_filename: None | str = None,
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.filesystem_conn_id = filesystem_conn_id
         self.filesystem_path = filesystem_path
-        self.check_specific_filename = check_specific_filename
 
     def execute(self, context: 'Context'):
         filesystem_protocol = FilesystemFactory.get_data_lake_filesystem(
             connection=BaseHook.get_connection(self.filesystem_conn_id),
         )
 
-        if self.check_specific_filename:
-            return filesystem_protocol.check_file(
-                f'{self.filesystem_path.rstrip("/")}/{self.check_specific_filename}'
-            )
-        return filesystem_protocol.check_prefix(self.filesystem_path)
+        return (
+            filesystem_protocol.check_prefix(self.filesystem_path)
+            if self.filesystem_path.endswith('/')
+            else filesystem_protocol.check_file(self.filesystem_path)
+        )

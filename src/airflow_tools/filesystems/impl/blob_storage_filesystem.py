@@ -37,8 +37,7 @@ class BlobStorageFilesystem(FilesystemProtocol):
         )
 
     def create_prefix(self, prefix: str):
-        # What to do here?
-        container_name, blob_name = _get_container_and_blob_name(f'{prefix}/empty_file')
+        container_name, blob_name = _get_container_and_blob_name(f'{prefix}/')
         self.hook.upload(container_name, blob_name, data=b"")
 
     def delete_prefix(self, prefix: str):
