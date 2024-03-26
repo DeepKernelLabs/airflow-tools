@@ -24,10 +24,22 @@ class SFTPFilesystem(FilesystemProtocol):
             data = BytesIO(data)
         conn.putfo(fl=data, remotepath=path, confirm=True)
 
+    def delete_file(self, path: str):
+        self.hook.delete_file(path)
+
+    def create_prefix(self, prefix: str):
+        self.hook.create_directory(prefix)
+
     def delete_prefix(self, prefix: str):
         for file in self.hook.list_directory(prefix):
             self.hook.delete_file(prefix.rstrip('/') + '/' + file)
         self.hook.delete_directory(prefix)
+
+    def check_file(self, path: str) -> bool:
+        return self.hook.isfile(path)
+
+    def check_prefix(self, prefix: str) -> bool:
+        return self.hook.isdir(prefix)
 
     def list_files(self, prefix: str) -> list[str]:
         return self.hook.list_directory(prefix)

@@ -14,6 +14,10 @@ class DataLakeFacade:
     """Provides a consistent interface over different Data Lakes (S3/Blob Storage etc.)"""
 
     def __init__(self, conn: Union[WasbHook, S3Hook, AwsGenericHook]):
+        logger.warning(
+            "DataLakeFacade is deprecated and will be removed in a future version. "
+            "Please use FilesystemFactory instead."
+        )
         self.conn: S3Hook | WasbHook = (
             S3Hook(conn.aws_conn_id)
             if isinstance(conn, AwsGenericHook) and not isinstance(conn, S3Hook)
