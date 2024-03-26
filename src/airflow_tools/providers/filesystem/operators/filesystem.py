@@ -108,6 +108,7 @@ class FilesystemToFilesystem(BaseOperator):
             else [self.source_path]
         )
         for file_path in files:
+            logger.info(f'Trying to copy {file_path} to {self.destination_path}')
             file_name = file_path.split('/')[-1]
             data = source_fs_hook.read(file_path)
             if self.data_transformation:
@@ -132,8 +133,8 @@ class FilesystemDeleteOperator(BaseOperator):
         filesystem_protocol = FilesystemFactory.get_data_lake_filesystem(
             connection=BaseHook.get_connection(self.filesystem_conn_id),
         )
-        if filesystem_protocol.check_prefix(self.filesystem_path):
-            filesystem_protocol.delete_prefix(self.filesystem_path)
+        logger.info(f'Trying to delete: {self.filesystem_path}')
+        filesystem_protocol.delete_prefix(self.filesystem_path)
 
 
 class FilesystemCheckOperator(BaseOperator):
@@ -155,6 +156,7 @@ class FilesystemCheckOperator(BaseOperator):
             connection=BaseHook.get_connection(self.filesystem_conn_id),
         )
 
+        logger.info(f'Trying to check: {self.filesystem_path}')
         return (
             filesystem_protocol.check_prefix(self.filesystem_path)
             if self.filesystem_path.endswith('/')

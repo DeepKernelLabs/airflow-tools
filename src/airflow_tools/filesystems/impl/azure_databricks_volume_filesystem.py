@@ -1,6 +1,8 @@
 import logging
 from io import BytesIO
 
+from databricks.sdk.errors.platform import NotFound
+
 from airflow_tools.filesystems.filesystem_protocol import FilesystemProtocol
 from airflow_tools.providers.azure.hooks.azure_databricks import (
     AzureDatabricksVolumeHook,
@@ -31,7 +33,13 @@ class AzureDatabricksVolumeFilesystem(FilesystemProtocol):
 
     def delete_prefix(self, prefix: str):
         conn = self.hook.get_conn()
-        for entry in conn.files.list_directory_contents(prefix):
+
+        try:
+            entries = list(conn.files.list_directory_contents(prefix))
+        except NotFound:
+            return
+
+        for entry in entries:
             if entry.is_directory:
                 self.delete_prefix(entry.path)
             else:
@@ -47,9 +55,12 @@ class AzureDatabricksVolumeFilesystem(FilesystemProtocol):
         )
 
     def check_prefix(self, prefix: str) -> bool:
-        return bool(
-            self.hook.get_conn().files.list_directory_contents(prefix, page_size=1)
-        )
+        try:
+            return bool(
+                self.hook.get_conn().files.list_directory_contents(prefix, page_size=1)
+            )
+        except NotFound:
+            return False
 
     def list_files(self, prefix: str) -> list[str]:
         return [
