@@ -102,6 +102,7 @@ class HttpToDataLake(BaseOperator):
         'data_lake_path',
         'data_lake_conn_id',
         'jmespath_expression',
+        'save_format',
     ]
     template_fields_renderers = HttpOperator.template_fields_renderers
 
