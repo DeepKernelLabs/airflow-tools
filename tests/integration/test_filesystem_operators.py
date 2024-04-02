@@ -89,8 +89,7 @@ def test_filesystem_check_operator(dag, s3_bucket, s3_resource, s3_client):
         res_correct_prefix_extra_file = FilesystemCheckOperator(
             task_id='test_data_lake_correct_prefix_extra_file',
             filesystem_conn_id='data_lake_test',
-            filesystem_path=s3_bucket + '/source1/entity1/{{ ds }}/',
-            check_specific_filename='__SUCCESS__',
+            filesystem_path=s3_bucket + '/source1/entity1/{{ ds }}/__SUCCESS__',
         )
 
         check_res_correct_prefix_extra_file = PythonOperator(
@@ -104,8 +103,7 @@ def test_filesystem_check_operator(dag, s3_bucket, s3_resource, s3_client):
         res_prefix_incorrect_extra_file = FilesystemCheckOperator(
             task_id='test_data_lake_prefix_incorrect_extra_file',
             filesystem_conn_id='data_lake_test',
-            filesystem_path=s3_bucket + '/source1/entity1/{{ ds }}/',
-            check_specific_filename='__FAILURE__',
+            filesystem_path=s3_bucket + '/source1/entity1/{{ ds }}/__FAILURE__',
         )
 
         check_res_incorrect_extra_file = PythonOperator(

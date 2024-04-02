@@ -35,7 +35,7 @@ class SQLToFilesystem(BaseOperator):
         destination_fs_conn_id: str,
         sql: str,
         destination_path: str,
-        batch_size: Optional[int] = 100000,
+        batch_size: int | None = None,
         *args,
         **kwargs,
     ) -> None:
@@ -57,16 +57,16 @@ class SQLToFilesystem(BaseOperator):
         )
 
         self.files.clear()
-        for i, df in enumerate(
-            source_sql_hook.get_pandas_df_by_chunks(
+        dfs = (
+            [source_sql_hook.get_pandas_df(sql=self.sql)]
+            if not self.batch_size
+            else source_sql_hook.get_pandas_df_by_chunks(
                 sql=self.sql, chunksize=self.batch_size
-            ),
-            start=1,
-        ):
-            full_file_path = f"{self.destination_path.rstrip('/')}/part{i:04}.parquet"
-            destination_fs_hook.write(
-                df.to_parquet(index=False, engine='pyarrow'), full_file_path
             )
+        )
+        for i, df in enumerate(dfs, start=1):
+            full_file_path = f"{self.destination_path.rstrip('/')}/part{i:04}.parquet"
+            destination_fs_hook.write(df.to_parquet(index=False), full_file_path)
             self.files.append(full_file_path)
 
 
