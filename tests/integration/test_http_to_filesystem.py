@@ -360,3 +360,51 @@ def test_http_to_data_lake_check_one_page_data_is_duplicated(
             .read()
             .decode('utf-8')
         )
+
+def test_http_to_data_lake_with_success_file(dag, s3_bucket, s3_resource, monkeypatch):
+    """This test uses the mock API https://reqres.in/"""
+    monkeypatch.setenv(
+        'AIRFLOW_CONN_HTTP_TEST',
+        json.dumps(
+            {
+                'conn_type': 'http',
+                'host': 'https://reqres.in',
+            }
+        ),
+    )
+    with dag:
+        HttpToFilesystem(
+            task_id='test_http_to_data_lake',
+            http_conn_id='http_test',
+            filesystem_conn_id='data_lake_test',
+            filesystem_path=s3_bucket + '/source1/entity2/{{ ds }}/',
+            endpoint='/api/users',
+            method='GET',
+            jmespath_expression='data[:2].{id: id, email: email}',
+            create_file_on_success='__SUCCESS__'
+        )
+    dag.test(execution_date=pendulum.datetime(2023, 10, 1))
+
+    content = (
+        s3_resource.Object(s3_bucket, 'source1/entity2/2023-10-01/part0001.jsonl')
+        .get()['Body']
+        .read()
+        .decode('utf-8')
+    )
+    assert (
+        content
+        == """\
+{"id":1,"email":"george.bluth@reqres.in"}
+{"id":2,"email":"janet.weaver@reqres.in"}
+"""
+    )
+    content = (
+        s3_resource.Object(s3_bucket, 'source1/entity2/2023-10-01/__SUCCESS__')
+        .get()['Body']
+        .read()
+        .decode('utf-8')
+    )
+    assert (
+        content
+        == """"""
+    )

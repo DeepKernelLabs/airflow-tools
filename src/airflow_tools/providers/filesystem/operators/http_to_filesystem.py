@@ -123,6 +123,7 @@ class HttpToFilesystem(BaseOperator):
         jmespath_expression: str | None = None,
         pagination_function: Callable | None = None,
         use_new_data_parameters_on_pagination: bool = False,
+        create_file_on_success: str | None = None,
         *args,
         **kwargs,
     ):
@@ -142,6 +143,7 @@ class HttpToFilesystem(BaseOperator):
         self.use_new_data_parameters_on_pagination = (
             use_new_data_parameters_on_pagination
         )
+        self.create_file_on_success = create_file_on_success
 
     def execute(self, context: 'Context') -> Any:
         http_batch_operator = HttpBatchOperator(
@@ -169,6 +171,10 @@ class HttpToFilesystem(BaseOperator):
             file_path = self.filesystem_path.rstrip('/') + '/' + self._file_name(i)
 
             filesystem_protocol.write(data, file_path)
+            
+            if self.create_file_on_success is not None and isinstance(self.create_file_on_success, str):
+                success_file_path = self.filesystem_path.rstrip('/') + '/' + self.create_file_on_success
+                filesystem_protocol.write(BytesIO(), success_file_path)
 
     def _file_name(self, n_part) -> str:
         file_name = f'part{n_part:04}.{self.save_format}'
