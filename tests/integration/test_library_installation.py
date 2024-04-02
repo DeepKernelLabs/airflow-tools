@@ -56,7 +56,7 @@ def test_import_package(virtual_environment, project_path):
             [
                 f"{venv_path}/bin/python",
                 "-c",
-                "from airflow_tools.providers.http_to_data_lake.operators.http_to_data_lake import HttpToDataLake; print('Import Ok')",
+                "from airflow_tools.providers.filesystem.operators.http_to_filesystem import HttpToFilesystem; print('Import Ok')",
             ],
             universal_newlines=True,
             stderr=subprocess.STDOUT,
