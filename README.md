@@ -1,7 +1,7 @@
 # Airflow Tools
 <div align="center">
   <!-- Logo -->
-  <img src="https://files.oaiusercontent.com/file-N6cWevXhyVzAQZhcbeSwt3ow?se=2024-03-19T10%3A30%3A46Z&sp=r&sv=2021-08-06&sr=b&rscc=max-age%3D31536000%2C%20immutable&rscd=attachment%3B%20filename%3D1a1db13e-8e8c-4966-a39b-9613fd9b6384.webp&sig=mVvKdDksDPMeWD6%2B%2B5E0HhrewCPnJscle6Jeh%2BMyLtQ%3D" alt="logo" width="400"/>
+  <img src="./media/images/logo.webp" alt="logo" width="400"/>
 
   <!-- Add some space between the logo and badges -->
   <br/>
