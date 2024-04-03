@@ -48,17 +48,28 @@ class AzureDatabricksVolumeFilesystem(FilesystemProtocol):
 
     def check_file(self, path: str) -> bool:
         prefix = path.rsplit("/", 1)[0]
-        return bool(
-            entry.path == path
-            for entry in self.hook.get_conn().files.list_directory_contents(prefix)
-            if not entry.is_directory
-        )
+
+        try:
+            file_list_path = [
+                entry.path == path
+                for entry in self.hook.get_conn().files.list_directory_contents(prefix)
+                if not entry.is_directory
+            ]
+            return any(file_list_path)
+
+        except NotFound:
+            return False
 
     def check_prefix(self, prefix: str) -> bool:
         try:
-            return bool(
-                self.hook.get_conn().files.list_directory_contents(prefix, page_size=1)
-            )
+            _ = [
+                f
+                for f in self.hook.get_conn().files.list_directory_contents(
+                    prefix, page_size=1
+                )
+            ]
+            return True
+
         except NotFound:
             return False
 
