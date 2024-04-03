@@ -21,9 +21,25 @@ class LocalFilesystem(FilesystemProtocol):
             data = data.getvalue()
         (Path(self.hook.get_path()) / path).write_bytes(data)
 
+    def delete_file(self, path: str):
+        path_to_delete = Path(self.hook.get_path()) / path
+        path_to_delete.unlink()
+
+    def create_prefix(self, prefix: str):
+        path_to_create = Path(self.hook.get_path()) / prefix
+        path_to_create.mkdir(parents=True, exist_ok=True)
+
     def delete_prefix(self, prefix: str):
         path_to_delete = Path(self.hook.get_path()) / prefix
         shutil.rmtree(str(path_to_delete))
+
+    def check_file(self, path: str) -> bool:
+        path_to_check = Path(self.hook.get_path()) / path
+        return path_to_check.is_file()
+
+    def check_prefix(self, prefix: str) -> bool:
+        path_to_check = Path(self.hook.get_path()) / prefix
+        return path_to_check.exists()
 
     def list_files(self, prefix: str) -> list[str]:
         path_to_list = Path(self.hook.get_path()) / prefix

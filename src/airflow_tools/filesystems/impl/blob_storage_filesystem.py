@@ -30,11 +30,29 @@ class BlobStorageFilesystem(FilesystemProtocol):
         )
         self.hook.upload(container_name=container_name, blob_name=blob_name, data=data)
 
+    def delete_file(self, path: str):
+        container_name, blob_name = _get_container_and_blob_name(path)
+        self.hook.delete_file(
+            container_name, blob_name, is_prefix=False, ignore_if_missing=True
+        )
+
+    def create_prefix(self, prefix: str):
+        container_name, blob_name = _get_container_and_blob_name(f'{prefix}/')
+        self.hook.upload(container_name, blob_name, data=b"")
+
     def delete_prefix(self, prefix: str):
         container_name, blob_prefix = _get_container_and_blob_name(prefix)
         self.hook.delete_file(
             container_name, blob_prefix, is_prefix=True, ignore_if_missing=True
         )
+
+    def check_file(self, path: str) -> bool:
+        container_name, blob_name = _get_container_and_blob_name(path)
+        return self.hook.check_for_blob(container_name, blob_name)
+
+    def check_prefix(self, prefix: str) -> bool:
+        container_name, blob_prefix = _get_container_and_blob_name(prefix)
+        return self.hook.check_for_prefix(container_name, blob_prefix)
 
     def list_files(self, prefix: str) -> list[str]:
         container_name, blob_prefix = _get_container_and_blob_name(prefix)

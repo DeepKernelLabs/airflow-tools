@@ -20,9 +20,6 @@ from airflow_tools.compression_utils import CompressionOptions, compress
 from airflow_tools.filesystems.filesystem_factory import FilesystemFactory
 from airflow_tools.exceptions import ApiResponseTypeError
 
-import logging
-logger = logging.getLogger(__file__)
-
 if TYPE_CHECKING:
     from requests.auth import AuthBase
 
@@ -100,10 +97,10 @@ class HttpBatchOperator(HttpOperator):
         )
 
 
-class HttpToDataLake(BaseOperator):
+class HttpToFilesystem(BaseOperator):
     template_fields = list(HttpOperator.template_fields) + [
-        'data_lake_path',
-        'data_lake_conn_id',
+        'filesystem_path',
+        'filesystem_conn_id',
         'jmespath_expression',
         'save_format',
     ]
@@ -114,8 +111,8 @@ class HttpToDataLake(BaseOperator):
     def __init__(
         self,
         http_conn_id: str,
-        data_lake_conn_id: str,
-        data_lake_path: str,
+        filesystem_conn_id: str,
+        filesystem_path: str,
         save_format: SaveFormat = 'jsonl',
         compression: CompressionOptions = None,
         endpoint: str | None = None,
@@ -126,17 +123,14 @@ class HttpToDataLake(BaseOperator):
         jmespath_expression: str | None = None,
         pagination_function: Callable | None = None,
         use_new_data_parameters_on_pagination: bool = False,
+        create_file_on_success: str | None = None,
         *args,
         **kwargs,
     ):
-        logger.warning(
-            "HttpToDataLake is deprecated and will be removed in a future version. "
-            "Please use HttpToFilesystem instead."
-        )
         super().__init__(*args, **kwargs)
         self.http_conn_id = http_conn_id
-        self.data_lake_conn_id = data_lake_conn_id
-        self.data_lake_path = data_lake_path
+        self.filesystem_conn_id = filesystem_conn_id
+        self.filesystem_path = filesystem_path
         self.save_format = save_format
         self.compression = compression
         self.endpoint = endpoint
@@ -149,6 +143,7 @@ class HttpToDataLake(BaseOperator):
         self.use_new_data_parameters_on_pagination = (
             use_new_data_parameters_on_pagination
         )
+        self.create_file_on_success = create_file_on_success
 
     def execute(self, context: 'Context') -> Any:
         http_batch_operator = HttpBatchOperator(
@@ -170,12 +165,16 @@ class HttpToDataLake(BaseOperator):
             start=1,
         ):
             filesystem_protocol = FilesystemFactory.get_data_lake_filesystem(
-                connection=BaseHook.get_connection(self.data_lake_conn_id),
+                connection=BaseHook.get_connection(self.filesystem_conn_id),
             )
 
-            file_path = self.data_lake_path.rstrip('/') + '/' + self._file_name(i)
+            file_path = self.filesystem_path.rstrip('/') + '/' + self._file_name(i)
 
             filesystem_protocol.write(data, file_path)
+            
+            if self.create_file_on_success is not None and isinstance(self.create_file_on_success, str):
+                success_file_path = self.filesystem_path.rstrip('/') + '/' + self.create_file_on_success
+                filesystem_protocol.write(BytesIO(), success_file_path)
 
     def _file_name(self, n_part) -> str:
         file_name = f'part{n_part:04}.{self.save_format}'
