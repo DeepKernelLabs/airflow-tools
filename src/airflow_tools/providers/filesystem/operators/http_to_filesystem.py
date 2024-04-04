@@ -145,7 +145,7 @@ class HttpToFilesystem(BaseOperator):
         self.use_new_data_parameters_on_pagination = (
             use_new_data_parameters_on_pagination
         )
-        self.create_file_on_success = (create_file_on_success,)
+        self.create_file_on_success = create_file_on_success
 
         if (
             self.save_format in self.binary_response_save_format
