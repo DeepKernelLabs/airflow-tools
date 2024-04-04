@@ -42,7 +42,7 @@ class HttpBatchOperator(HttpOperator):
             yield self.process_response(context=context, response=response)
 
     def paginate_sync(
-        self, response: Response, use_new_data_parameters_on_pagination=False
+        self, response: Response, use_new_data_parameters_on_pagination: bool = False
     ) -> Response | list[Response]:
         if not self.pagination_function:
             return None
@@ -218,11 +218,11 @@ class HttpToDataLake(BaseOperator):
 
 
 def list_to_jsonl(data: list[dict], compression: 'CompressionOptions') -> BytesIO:
-    out = StringIO()
     df = pd.DataFrame(data)
+    out = BytesIO()
     df.to_json(out, orient='records', lines=True, compression=compression)
     out.seek(0)
-    return BytesIO(out.getvalue().encode())
+    return out
 
 
 def json_to_binary(data: dict, compression: 'CompressionOptions') -> BytesIO:
