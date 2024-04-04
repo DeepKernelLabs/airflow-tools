@@ -17,8 +17,8 @@ from airflow.utils.helpers import merge_dicts
 from requests import Response
 
 from airflow_tools.compression_utils import CompressionOptions, compress
-from airflow_tools.filesystems.filesystem_factory import FilesystemFactory
 from airflow_tools.exceptions import ApiResponseTypeError
+from airflow_tools.filesystems.filesystem_factory import FilesystemFactory
 
 if TYPE_CHECKING:
     from requests.auth import AuthBase
@@ -31,6 +31,7 @@ class HttpBatchOperator(HttpOperator):
         self, context: Context, use_new_data_parameters_on_pagination=False
     ) -> Any:
         self.log.info("Calling HTTP method")
+
         response = self.hook.run(
             self.endpoint, self.data, self.headers, self.extra_options
         )
@@ -107,6 +108,7 @@ class HttpToFilesystem(BaseOperator):
     template_fields_renderers = HttpOperator.template_fields_renderers
 
     json_response_save_format = ['json', 'jsonl']
+    binary_response_save_format = ['parquet']
 
     def __init__(
         self,
@@ -143,7 +145,15 @@ class HttpToFilesystem(BaseOperator):
         self.use_new_data_parameters_on_pagination = (
             use_new_data_parameters_on_pagination
         )
-        self.create_file_on_success = create_file_on_success
+        self.create_file_on_success = (create_file_on_success,)
+
+        if (
+            self.save_format in self.binary_response_save_format
+            and self.compression is not None
+        ):
+            raise ValueError(
+                f'Compression is not supported for binary response save formats: {self.binary_response_save_format}'
+            )
 
     def execute(self, context: 'Context') -> Any:
         http_batch_operator = HttpBatchOperator(
@@ -171,13 +181,18 @@ class HttpToFilesystem(BaseOperator):
             file_path = self.filesystem_path.rstrip('/') + '/' + self._file_name(i)
 
             filesystem_protocol.write(data, file_path)
-            
-            if self.create_file_on_success is not None and isinstance(self.create_file_on_success, str):
-                success_file_path = self.filesystem_path.rstrip('/') + '/' + self.create_file_on_success
+
+            if self.create_file_on_success is not None and isinstance(
+                self.create_file_on_success, str
+            ):
+                success_file_path = (
+                    self.filesystem_path.rstrip('/') + '/' + self.create_file_on_success
+                )
                 filesystem_protocol.write(BytesIO(), success_file_path)
 
     def _file_name(self, n_part) -> str:
         file_name = f'part{n_part:04}.{self.save_format}'
+
         if self.compression:
             file_name += f'.{self.compression}'
         return file_name
@@ -200,6 +215,8 @@ class HttpToFilesystem(BaseOperator):
         elif self.save_format in self.json_response_save_format:
             self.data = response.json()
 
+        elif self.save_format in self.binary_response_save_format:
+            self.data = response.content
         else:
             self.data = response.text
 
@@ -218,7 +235,10 @@ class HttpToFilesystem(BaseOperator):
                 return xml_to_binary(self.data, self.compression)
 
             case 'parquet':
-                return parquet_to_binary(self.data, self.compression)
+                return self.data
+
+            case 'csv':
+                return csv_to_binary(self.data, self.compression)
 
             case _:
                 raise NotImplementedError(f'Unknown save_format: {self.save_format}')
@@ -239,10 +259,10 @@ def json_to_binary(data: dict, compression: 'CompressionOptions') -> BytesIO:
     return out
 
 
-def parquet_to_binary(data: str, compression: 'CompressionOptions') -> BytesIO:
-    parquet_df = pd.DataFrame(StringIO(data))
+def csv_to_binary(data: str, compression: 'CompressionOptions') -> BytesIO:
+    csv_df = pd.read_csv(StringIO(data), sep=',')
     out = BytesIO()
-    parquet_df.to_parquet(out, compression=compression)
+    csv_df.to_csv(out, compression=compression, index=False)
     out.seek(0)
     return out
 
