@@ -14,8 +14,8 @@ import boto3
 import pendulum
 import pytest
 from airflow import DAG
-from airflow.auth.managers.fab.models import User  # noqa # type: ignore
-from airflow.models.dagrun import DagRunNote  # noqa
+#from airflow.auth.managers.fab.models import User  # noqa # type: ignore
+#from airflow.models.dagrun import DagRunNote  # noqa
 
 
 @pytest.fixture
