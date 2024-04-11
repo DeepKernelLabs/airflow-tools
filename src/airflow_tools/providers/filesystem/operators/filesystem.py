@@ -1,3 +1,4 @@
+from io import BytesIO
 from typing import TYPE_CHECKING, Optional, Protocol
 
 from airflow.hooks.base import BaseHook
@@ -36,6 +37,7 @@ class SQLToFilesystem(BaseOperator):
         sql: str,
         destination_path: str,
         batch_size: int | None = None,
+        create_file_on_success: str | None = None,
         *args,
         **kwargs,
     ) -> None:
@@ -45,6 +47,7 @@ class SQLToFilesystem(BaseOperator):
         self.sql = sql
         self.destination_path = destination_path
         self.batch_size = batch_size
+        self.create_file_on_success = create_file_on_success
         self.files = []
 
     def execute(self, context):
@@ -69,6 +72,10 @@ class SQLToFilesystem(BaseOperator):
             destination_fs_hook.write(df.to_parquet(index=False), full_file_path)
             self.files.append(full_file_path)
 
+        if self.create_file_on_success is not None and isinstance(self.create_file_on_success, str):
+            success_file_path = f"{self.destination_path.rstrip('/')}/{self.create_file_on_success}"
+            destination_fs_hook.write(BytesIO(), success_file_path)
+
 
 class FilesystemToFilesystem(BaseOperator):
     """
@@ -84,6 +91,7 @@ class FilesystemToFilesystem(BaseOperator):
         source_path: str,
         destination_path: str,
         data_transformation: Optional[Transformation] = None,
+        create_file_on_success: str | None = None,
         *args,
         **kwargs,
     ) -> None:
@@ -93,6 +101,7 @@ class FilesystemToFilesystem(BaseOperator):
         self.source_path = source_path
         self.destination_path = destination_path
         self.data_transformation = data_transformation
+        self.create_file_on_success = create_file_on_success
 
     def execute(self, context):
         source_fs_hook = FilesystemFactory.get_data_lake_filesystem(
@@ -119,6 +128,10 @@ class FilesystemToFilesystem(BaseOperator):
                 else self.destination_path
             )
             destination_fs_hook.write(data, full_destination_path)
+
+        if self.create_file_on_success is not None and isinstance(self.create_file_on_success, str):
+            success_file_path = '/'.join(self.destination_path.split('/')[:-1]) + '/' + self.create_file_on_success
+            destination_fs_hook.write(BytesIO(), success_file_path)
 
 
 class FilesystemDeleteOperator(BaseOperator):
