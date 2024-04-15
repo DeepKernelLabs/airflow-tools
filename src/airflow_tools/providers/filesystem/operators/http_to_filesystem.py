@@ -1,6 +1,6 @@
 import json
 from io import BytesIO, StringIO
-from typing import TYPE_CHECKING, Any, Callable, Literal
+from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, Protocol
 
 import jmespath
 import pandas as pd
@@ -25,6 +25,10 @@ if TYPE_CHECKING:
 
 SaveFormat = Literal['jsonl']
 
+
+class Transformation(Protocol):
+    def __call__(self, data: bytes, **kwargs) -> bytes:
+        ...
 
 class HttpBatchOperator(HttpOperator):
     def execute(
@@ -104,11 +108,12 @@ class HttpToFilesystem(BaseOperator):
         'filesystem_conn_id',
         'jmespath_expression',
         'save_format',
+        'source_format',
     ]
     template_fields_renderers = HttpOperator.template_fields_renderers
 
-    json_response_save_format = ['json', 'jsonl']
-    binary_response_save_format = ['parquet']
+    json_response_source_format = ['json', 'jsonl']
+    binary_response_source_format = ['parquet']
 
     def __init__(
         self,
@@ -116,6 +121,7 @@ class HttpToFilesystem(BaseOperator):
         filesystem_conn_id: str,
         filesystem_path: str,
         save_format: SaveFormat = 'jsonl',
+        source_format: SaveFormat = None,
         compression: CompressionOptions = None,
         endpoint: str | None = None,
         method: str = "POST",
@@ -126,6 +132,7 @@ class HttpToFilesystem(BaseOperator):
         pagination_function: Callable | None = None,
         use_new_data_parameters_on_pagination: bool = False,
         create_file_on_success: str | None = None,
+        data_transformation: Optional[Transformation] = None,
         *args,
         **kwargs,
     ):
@@ -133,7 +140,6 @@ class HttpToFilesystem(BaseOperator):
         self.http_conn_id = http_conn_id
         self.filesystem_conn_id = filesystem_conn_id
         self.filesystem_path = filesystem_path
-        self.save_format = save_format
         self.compression = compression
         self.endpoint = endpoint
         self.method = method
@@ -146,14 +152,27 @@ class HttpToFilesystem(BaseOperator):
             use_new_data_parameters_on_pagination
         )
         self.create_file_on_success = create_file_on_success
+        self.data_transformation = data_transformation
+        
+        self.save_format = save_format
+        self.source_format = source_format if source_format else save_format
 
         if (
-            self.save_format in self.binary_response_save_format
+            self.save_format in self.binary_response_source_format
             and self.compression is not None
         ):
             raise ValueError(
-                f'Compression is not supported for binary response save formats: {self.binary_response_save_format}'
+                f'Compression is not supported for binary response save formats: {self.binary_response_source_format}'
             )
+        
+        if self.data_transformation and not callable(self.data_transformation):
+            raise ValueError('data_transformation must be a callable')
+        
+        if self.data_transformation is None and self.source_format != self.save_format:
+            raise ValueError(
+                'data_transformation must be provided if source_format is different from save_format'
+            )
+       
 
     def execute(self, context: 'Context') -> Any:
         http_batch_operator = HttpBatchOperator(
@@ -200,27 +219,33 @@ class HttpToFilesystem(BaseOperator):
     def _response_filter(self, response) -> BytesIO:
         if (
             self.jmespath_expression
-            and self.save_format in self.json_response_save_format
+            and self.source_format in self.json_response_source_format
         ):
             self.data = jmespath.search(self.jmespath_expression, response.json())
 
         elif (
             self.jmespath_expression
-            and self.save_format not in self.json_response_save_format
+            and self.source_format not in self.json_response_source_format
         ):
             raise ApiResponseTypeError(
                 'JMESPath expression is only supported for json and jsonl save formats'
             )
 
-        elif self.save_format in self.json_response_save_format:
+        elif self.source_format in self.json_response_source_format:
             self.data = response.json()
 
-        elif self.save_format in self.binary_response_save_format:
+        elif self.source_format in self.binary_response_source_format:
             self.data = response.content
         else:
             self.data = response.text
+        
+        # Check if we have a custom data transformation
+        if self.data_transformation:
+            return self.data_transformation(self.data)
+        
+        # If we don't have a custom data transformation, use the default one based on the source_format
 
-        match self.save_format:
+        match self.source_format:
             case 'json':
                 return json_to_binary(self.data, self.compression)
 
@@ -241,7 +266,7 @@ class HttpToFilesystem(BaseOperator):
                 return csv_to_binary(self.data, self.compression)
 
             case _:
-                raise NotImplementedError(f'Unknown save_format: {self.save_format}')
+                raise NotImplementedError(f'Unknown source_format/save_format: {self.source_format}')
 
 
 def list_to_jsonl(data: list[dict], compression: 'CompressionOptions') -> BytesIO:
