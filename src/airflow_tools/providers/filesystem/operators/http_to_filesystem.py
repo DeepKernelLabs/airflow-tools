@@ -30,6 +30,7 @@ class Transformation(Protocol):
     def __call__(self, data: bytes, **kwargs) -> bytes:
         ...
 
+
 class HttpBatchOperator(HttpOperator):
     def execute(
         self, context: Context, use_new_data_parameters_on_pagination=False
@@ -133,6 +134,7 @@ class HttpToFilesystem(BaseOperator):
         use_new_data_parameters_on_pagination: bool = False,
         create_file_on_success: str | None = None,
         data_transformation: Optional[Transformation] = None,
+        data_transformation_kwargs: dict[str, Any] | None = None,
         *args,
         **kwargs,
     ):
@@ -153,9 +155,11 @@ class HttpToFilesystem(BaseOperator):
         )
         self.create_file_on_success = create_file_on_success
         self.data_transformation = data_transformation
-        
+        self.data_transformation_kwargs = data_transformation_kwargs
+
         self.save_format = save_format
         self.source_format = source_format if source_format else save_format
+        self.kwargs = kwargs
 
         if (
             self.save_format in self.binary_response_source_format
@@ -164,15 +168,18 @@ class HttpToFilesystem(BaseOperator):
             raise ValueError(
                 f'Compression is not supported for binary response save formats: {self.binary_response_source_format}'
             )
-        
+
         if self.data_transformation and not callable(self.data_transformation):
             raise ValueError('data_transformation must be a callable')
-        
+
         if self.data_transformation is None and self.source_format != self.save_format:
             raise ValueError(
                 'data_transformation must be provided if source_format is different from save_format'
             )
-       
+        if self.data_transformation_kwargs and self.data_transformation is None:
+            raise ValueError(
+                'data_transformation must be provided if data_transformation_kwargs is provided'
+            )
 
     def execute(self, context: 'Context') -> Any:
         http_batch_operator = HttpBatchOperator(
@@ -230,7 +237,6 @@ class HttpToFilesystem(BaseOperator):
             raise ApiResponseTypeError(
                 'JMESPath expression is only supported for json and jsonl save formats'
             )
-
         elif self.source_format in self.json_response_source_format:
             self.data = response.json()
 
@@ -238,11 +244,13 @@ class HttpToFilesystem(BaseOperator):
             self.data = response.content
         else:
             self.data = response.text
-        
+
         # Check if we have a custom data transformation
-        if self.data_transformation:
+        if self.data_transformation and self.data_transformation_kwargs:
+            return self.data_transformation(self.data, self.data_transformation_kwargs)
+        elif self.data_transformation:
             return self.data_transformation(self.data)
-        
+
         # If we don't have a custom data transformation, use the default one based on the source_format
 
         match self.source_format:
@@ -266,7 +274,9 @@ class HttpToFilesystem(BaseOperator):
                 return csv_to_binary(self.data, self.compression)
 
             case _:
-                raise NotImplementedError(f'Unknown source_format/save_format: {self.source_format}')
+                raise NotImplementedError(
+                    f'Unknown source_format/save_format: {self.source_format}'
+                )
 
 
 def list_to_jsonl(data: list[dict], compression: 'CompressionOptions') -> BytesIO:

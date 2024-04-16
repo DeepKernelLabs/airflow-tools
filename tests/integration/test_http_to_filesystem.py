@@ -1,12 +1,16 @@
+import io
 import json
 
+import pandas as pd
 import pendulum
 import pytest
 from botocore.exceptions import ClientError as BotoClientError
 
 from airflow_tools.exceptions import ApiResponseTypeError
+from airflow_tools.providers.filesystem.operators.http_to_filesystem import (
+    HttpToFilesystem,
+)
 
-from airflow_tools.providers.filesystem.operators.http_to_filesystem import HttpToFilesystem
 
 def test_http_to_data_lake(dag, s3_bucket, s3_resource, monkeypatch):
     """This test uses the mock API https://reqres.in/"""
@@ -361,6 +365,7 @@ def test_http_to_data_lake_check_one_page_data_is_duplicated(
             .decode('utf-8')
         )
 
+
 def test_http_to_data_lake_with_success_file(dag, s3_bucket, s3_resource, monkeypatch):
     """This test uses the mock API https://reqres.in/"""
     monkeypatch.setenv(
@@ -381,7 +386,7 @@ def test_http_to_data_lake_with_success_file(dag, s3_bucket, s3_resource, monkey
             endpoint='/api/users',
             method='GET',
             jmespath_expression='data[:2].{id: id, email: email}',
-            create_file_on_success='__SUCCESS__'
+            create_file_on_success='__SUCCESS__',
         )
     dag.test(execution_date=pendulum.datetime(2023, 10, 1))
 
@@ -404,7 +409,183 @@ def test_http_to_data_lake_with_success_file(dag, s3_bucket, s3_resource, monkey
         .read()
         .decode('utf-8')
     )
-    assert (
-        content
-        == """"""
+    assert content == """"""
+
+
+def transform_from_oecd_json_to_csv(data):
+    """Transforms the data from OECD JSON to CSV"""
+    out = io.StringIO()
+    try:
+
+        df = pd.DataFrame(data)
+        df.to_csv(out, header=True, index=False, sep=',')
+        return out.getvalue()
+    except KeyError as e:
+        raise ApiResponseTypeError(f'Error transforming the data: {e}')
+
+
+def test_http_to_filesystem_with_transformation(
+    dag, s3_bucket, s3_resource, monkeypatch
+):
+    """This test uses the mock API https://reqres.in/"""
+    monkeypatch.setenv(
+        'AIRFLOW_CONN_HTTP_TEST',
+        json.dumps(
+            {
+                'conn_type': 'http',
+                'host': 'https://reqres.in',
+            }
+        ),
     )
+    with dag:
+        HttpToFilesystem(
+            task_id='test_http_to_data_lake',
+            http_conn_id='http_test',
+            filesystem_conn_id='data_lake_test',
+            filesystem_path=s3_bucket + '/source1/entity1/{{ ds }}/',
+            endpoint='/api/users',
+            method='GET',
+            jmespath_expression='data[:].{id: id, email: email}',
+            source_format='json',
+            save_format='csv',
+            data_transformation=transform_from_oecd_json_to_csv,
+        )
+    dag.test(execution_date=pendulum.datetime(2023, 10, 1))
+
+    content = (
+        s3_resource.Object(s3_bucket, 'source1/entity1/2023-10-01/part0001.csv')
+        .get()['Body']
+        .read()
+        .decode('utf-8')
+    )
+    df = pd.read_csv(io.StringIO(content))
+
+    assert df.loc[0, ['id', 'email']].to_dict() == {
+        'id': 1,
+        'email': 'george.bluth@reqres.in',
+    }
+
+
+def transform_from_oecd_json_to_csv_with_columns_change(
+    data, data_transformation_kwargs
+):
+    """Transforms the data from OECD JSON to CSV"""
+    out = io.StringIO()
+    try:
+        df = pd.DataFrame(data)
+        df.rename(columns=data_transformation_kwargs['colums_remap'], inplace=True)
+        df.to_csv(out, header=True, index=False, sep=',')
+        return out.getvalue()
+    except KeyError as e:
+        raise ApiResponseTypeError(f'Error transforming the data: {e}')
+
+
+def test_http_to_filesystem_with_transformation_and_extra_args(
+    dag, s3_bucket, s3_resource, monkeypatch
+):
+    """This test uses the mock API https://reqres.in/"""
+    monkeypatch.setenv(
+        'AIRFLOW_CONN_HTTP_TEST',
+        json.dumps(
+            {
+                'conn_type': 'http',
+                'host': 'https://reqres.in',
+            }
+        ),
+    )
+    with dag:
+        HttpToFilesystem(
+            task_id='test_http_to_data_lake',
+            http_conn_id='http_test',
+            filesystem_conn_id='data_lake_test',
+            filesystem_path=s3_bucket + '/source1/entity1/{{ ds }}/',
+            endpoint='/api/users',
+            method='GET',
+            jmespath_expression='data[:].{id: id, email: email}',
+            source_format='json',
+            save_format='csv',
+            data_transformation=transform_from_oecd_json_to_csv_with_columns_change,
+            data_transformation_kwargs={
+                'colums_remap': {'id': 'id2', 'email': 'email2'}
+            },
+        )
+    dag.test(execution_date=pendulum.datetime(2023, 10, 1))
+
+    content = (
+        s3_resource.Object(s3_bucket, 'source1/entity1/2023-10-01/part0001.csv')
+        .get()['Body']
+        .read()
+        .decode('utf-8')
+    )
+    df = pd.read_csv(io.StringIO(content))
+
+    assert df.loc[0, ['id2', 'email2']].to_dict() == {
+        'id2': 1,
+        'email2': 'george.bluth@reqres.in',
+    }
+
+
+def test_http_to_filesystem_with_transformation_error_no_function(
+    dag, s3_bucket, s3_resource, monkeypatch
+):
+    """This test uses the mock API https://reqres.in/"""
+    monkeypatch.setenv(
+        'AIRFLOW_CONN_HTTP_TEST',
+        json.dumps(
+            {
+                'conn_type': 'http',
+                'host': 'https://reqres.in',
+            }
+        ),
+    )
+    with pytest.raises(ValueError, match=r"data_transformation must be provided.*"):
+        with dag:
+            HttpToFilesystem(
+                task_id='test_http_to_data_lake',
+                http_conn_id='http_test',
+                filesystem_conn_id='data_lake_test',
+                filesystem_path=s3_bucket + '/source1/entity1/{{ ds }}/',
+                endpoint='/api/users',
+                method='GET',
+                jmespath_expression='data[:].{id: id, email: email}',
+                source_format='json',
+                save_format='csv',
+                data_transformation=None,
+            )
+        dag.test(execution_date=pendulum.datetime(2023, 10, 1))
+
+        assert False, "Should have raised an error"
+
+
+def test_http_to_filesystem_with_transformation_error_extra_params_no_function(
+    dag, s3_bucket, s3_resource, monkeypatch
+):
+    """This test uses the mock API https://reqres.in/"""
+    monkeypatch.setenv(
+        'AIRFLOW_CONN_HTTP_TEST',
+        json.dumps(
+            {
+                'conn_type': 'http',
+                'host': 'https://reqres.in',
+            }
+        ),
+    )
+    with pytest.raises(ValueError, match=r".*data_transformation_kwargs is.*"):
+        with dag:
+            HttpToFilesystem(
+                task_id='test_http_to_data_lake',
+                http_conn_id='http_test',
+                filesystem_conn_id='data_lake_test',
+                filesystem_path=s3_bucket + '/source1/entity1/{{ ds }}/',
+                endpoint='/api/users',
+                method='GET',
+                jmespath_expression='data[:].{id: id, email: email}',
+                save_format='csv',
+                data_transformation=None,
+                data_transformation_kwargs={
+                    'colums_remap': {'id': 'id2', 'email': 'email2'}
+                },
+            )
+        dag.test(execution_date=pendulum.datetime(2023, 10, 1))
+
+        assert False, "Should have raised an error"
