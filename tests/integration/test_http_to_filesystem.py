@@ -412,8 +412,8 @@ def test_http_to_data_lake_with_success_file(dag, s3_bucket, s3_resource, monkey
     assert content == """"""
 
 
-def transform_from_oecd_json_to_csv(data):
-    """Transforms the data from OECD JSON to CSV"""
+def transform_from_json_to_csv(data):
+    """Transforms the data from JSON to CSV"""
     out = io.StringIO()
     try:
 
@@ -448,7 +448,7 @@ def test_http_to_filesystem_with_transformation(
             jmespath_expression='data[:].{id: id, email: email}',
             source_format='json',
             save_format='csv',
-            data_transformation=transform_from_oecd_json_to_csv,
+            data_transformation=transform_from_json_to_csv,
         )
     dag.test(execution_date=pendulum.datetime(2023, 10, 1))
 
@@ -466,10 +466,10 @@ def test_http_to_filesystem_with_transformation(
     }
 
 
-def transform_from_oecd_json_to_csv_with_columns_change(
+def transform_from_json_to_csv_with_columns_change(
     data, data_transformation_kwargs
 ):
-    """Transforms the data from OECD JSON to CSV"""
+    """Transforms the data from JSON to CSV"""
     out = io.StringIO()
     try:
         df = pd.DataFrame(data)
@@ -504,7 +504,7 @@ def test_http_to_filesystem_with_transformation_and_extra_args(
             jmespath_expression='data[:].{id: id, email: email}',
             source_format='json',
             save_format='csv',
-            data_transformation=transform_from_oecd_json_to_csv_with_columns_change,
+            data_transformation=transform_from_json_to_csv_with_columns_change,
             data_transformation_kwargs={
                 'colums_remap': {'id': 'id2', 'email': 'email2'}
             },
