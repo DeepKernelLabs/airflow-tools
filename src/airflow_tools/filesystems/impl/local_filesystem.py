@@ -35,11 +35,11 @@ class LocalFilesystem(FilesystemProtocol):
 
     def check_file(self, path: str) -> bool:
         path_to_check = Path(self.hook.get_path()) / path
-        return path_to_check.is_file()
+        return path_to_check.exists() and path_to_check.is_file()
 
     def check_prefix(self, prefix: str) -> bool:
         path_to_check = Path(self.hook.get_path()) / prefix
-        return path_to_check.exists()
+        return path_to_check.exists() and path_to_check.is_dir()
 
     def list_files(self, prefix: str) -> list[str]:
         path_to_list = Path(self.hook.get_path()) / prefix
