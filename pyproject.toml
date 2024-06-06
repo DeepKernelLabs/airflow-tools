@@ -26,6 +26,8 @@ flask-session = "0.5.0"
 apache-airflow-providers-sftp = "^4.8.1"
 databricks-sdk = "^0.21.0"
 databricks-sql-connector = "^2"
+airflow-provider-duckdb = "^0.2.0"
+deltalake = "^0.17.4"
 
 [tool.poetry.plugins."apache_airflow_provider"]
 "provider_info" = "airflow_tools.providers.package:get_provider_info"
