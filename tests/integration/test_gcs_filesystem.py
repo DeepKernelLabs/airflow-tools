@@ -1,4 +1,5 @@
 import uuid
+import pytest 
 
 from airflow.hooks.base import BaseHook
 
@@ -6,6 +7,7 @@ from airflow_tools.filesystems.filesystem_factory import FilesystemFactory
 from airflow_tools.filesystems.impl.google_cloud_storage_filesystem import GCSFilesystem
 
 
+@pytest.mark.skip(reason="This test is better to run it manually, for the moment we don't want to use it against GCP.")
 def test_gcs_filesystem():
     """Expects an environment variable set to a GCS test bucket.
     AIRFLOW_CONN_GCP_DATA_LAKE_TEST='{"conn_type": "google_cloud_platform", "extra": {"key_path": "/.../keyfile.json"}}'"""
