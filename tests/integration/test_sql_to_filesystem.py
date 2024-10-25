@@ -9,7 +9,7 @@ def test_execute_with_a_single_output(sqlite_database, s3_bucket, monkeypatch):
         json.dumps(
             {
                 'conn_type': 'sqlite',
-                'host': sqlite_database,
+                'host': str(sqlite_database),
             }
         ),
     )
@@ -36,7 +36,7 @@ def test_execute_with_multiple_outputs(sqlite_database, s3_bucket, monkeypatch):
         json.dumps(
             {
                 'conn_type': 'sqlite',
-                'host': sqlite_database,
+                'host': str(sqlite_database),
             }
         ),
     )
