@@ -467,13 +467,13 @@ zendesk = ["apache-airflow-providers-zendesk"]
 
 [[package]]
 name = "apache-airflow-providers-amazon"
-version = "8.29.0"
+version = "9.0.0"
 description = "Provider package apache-airflow-providers-amazon for Apache Airflow"
 optional = false
-python-versions = "~=3.8"
+python-versions = "~=3.9"
 files = [
-    {file = "apache_airflow_providers_amazon-8.29.0-py3-none-any.whl", hash = "sha256:24428028a1b08bc91c026acd3cc18cf152af6693c54d741eb6c0708459c9d8ed"},
-    {file = "apache_airflow_providers_amazon-8.29.0.tar.gz", hash = "sha256:b46d6492032cac0ecbc06652beb8e7130e22d1431658bb9084b38ee868451f84"},
+    {file = "apache_airflow_providers_amazon-9.0.0-py3-none-any.whl", hash = "sha256:48d53124a4b924f561d0f8aeeb9ceb80bb07cda2e689486a108ed00ac6907e7e"},
+    {file = "apache_airflow_providers_amazon-9.0.0.tar.gz", hash = "sha256:0a8d454b0de9284f0805ac746b61c82a9a4470a40234690a3bd8d4ab12f49c64"},
 ]
 
 [package.dependencies]
@@ -1521,17 +1521,17 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.35.48"
+version = "1.35.49"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3-1.35.48-py3-none-any.whl", hash = "sha256:60889bb6e21f0af662ac9404e00125d3b8a5808f190e89462e5ddf73604adfc1"},
-    {file = "boto3-1.35.48.tar.gz", hash = "sha256:5007a5cdd09e4db9309adf2ee090455a34ae639bd10a68a1fefca72cd77070fc"},
+    {file = "boto3-1.35.49-py3-none-any.whl", hash = "sha256:b660c649a27a6b47a34f6f858f5bd7c3b0a798a16dec8dda7cbebeee80fd1f60"},
+    {file = "boto3-1.35.49.tar.gz", hash = "sha256:ddecb27f5699ca9f97711c52b6c0652c2e63bf6c2bfbc13b819b4f523b4d30ff"},
 ]
 
 [package.dependencies]
-botocore = ">=1.35.48,<1.36.0"
+botocore = ">=1.35.49,<1.36.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.10.0,<0.11.0"
 
@@ -1540,13 +1540,13 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "boto3-stubs"
-version = "1.35.48"
-description = "Type annotations for boto3 1.35.48 generated with mypy-boto3-builder 8.1.4"
+version = "1.35.49"
+description = "Type annotations for boto3 1.35.49 generated with mypy-boto3-builder 8.1.4"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3_stubs-1.35.48-py3-none-any.whl", hash = "sha256:0e7f433b20c4279fb34f3cf28afe6ae3ac392f1c8d66928c253d54e61fc87511"},
-    {file = "boto3_stubs-1.35.48.tar.gz", hash = "sha256:cd67ba0f576ec255cf8201cf6e4ae0e7698861e58020ca9a0db52b048c9968e4"},
+    {file = "boto3_stubs-1.35.49-py3-none-any.whl", hash = "sha256:daad87dcff906f7c09dde4ef3c252e2c47b6e1e8e669f5a8311658ac0d1182c0"},
+    {file = "boto3_stubs-1.35.49.tar.gz", hash = "sha256:2a2e08ba2383df6f478127f9754a02a590131249b40c59d7c6ca9fce76906785"},
 ]
 
 [package.dependencies]
@@ -1597,7 +1597,7 @@ bedrock-agent = ["mypy-boto3-bedrock-agent (>=1.35.0,<1.36.0)"]
 bedrock-agent-runtime = ["mypy-boto3-bedrock-agent-runtime (>=1.35.0,<1.36.0)"]
 bedrock-runtime = ["mypy-boto3-bedrock-runtime (>=1.35.0,<1.36.0)"]
 billingconductor = ["mypy-boto3-billingconductor (>=1.35.0,<1.36.0)"]
-boto3 = ["boto3 (==1.35.48)", "botocore (==1.35.48)"]
+boto3 = ["boto3 (==1.35.49)", "botocore (==1.35.49)"]
 braket = ["mypy-boto3-braket (>=1.35.0,<1.36.0)"]
 budgets = ["mypy-boto3-budgets (>=1.35.0,<1.36.0)"]
 ce = ["mypy-boto3-ce (>=1.35.0,<1.36.0)"]
@@ -1949,13 +1949,13 @@ xray = ["mypy-boto3-xray (>=1.35.0,<1.36.0)"]
 
 [[package]]
 name = "botocore"
-version = "1.35.48"
+version = "1.35.49"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "botocore-1.35.48-py3-none-any.whl", hash = "sha256:34fa25fd717208b05745e60f271a39636108fa87a3512fbca18e7e6f787a3239"},
-    {file = "botocore-1.35.48.tar.gz", hash = "sha256:3e766cc251053c9ef98542fdf225381ed58531769c3811a6282bd7247f7e2bdf"},
+    {file = "botocore-1.35.49-py3-none-any.whl", hash = "sha256:aed4d3643afd702920792b68fbe712a8c3847993820d1048cd238a6469354da1"},
+    {file = "botocore-1.35.49.tar.gz", hash = "sha256:07d0c1325fdbfa49a4a054413dbdeab0a6030449b2aa66099241af2dac48afd8"},
 ]
 
 [package.dependencies]
@@ -1971,13 +1971,13 @@ crt = ["awscrt (==0.22.0)"]
 
 [[package]]
 name = "botocore-stubs"
-version = "1.35.48"
+version = "1.35.49"
 description = "Type annotations and code completion for botocore"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "botocore_stubs-1.35.48-py3-none-any.whl", hash = "sha256:af110f0003e867c1febadd6cab49f64e0a25580155b3326e977ebd3e07590096"},
-    {file = "botocore_stubs-1.35.48.tar.gz", hash = "sha256:fdb7557fb13a584c5d15263692ed89de8d6bec802c7feb0cd211224384f709e7"},
+    {file = "botocore_stubs-1.35.49-py3-none-any.whl", hash = "sha256:367ce067e003de7e9b76320f551ba4fc8369a4b7ef10210f6071d3593fea2605"},
+    {file = "botocore_stubs-1.35.49.tar.gz", hash = "sha256:c5006e31d77e290eca215e6a71292ea7b029b54900310ed0f87da8e844f1db38"},
 ]
 
 [package.dependencies]
@@ -2759,13 +2759,13 @@ idna = ">=2.0.0"
 
 [[package]]
 name = "et-xmlfile"
-version = "1.1.0"
+version = "2.0.0"
 description = "An implementation of lxml.xmlfile for the standard library"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.8"
 files = [
-    {file = "et_xmlfile-1.1.0-py3-none-any.whl", hash = "sha256:a2ba85d1d6a74ef63837eed693bcb89c3f752169b0e3e7ae5b16ca5e1b3deada"},
-    {file = "et_xmlfile-1.1.0.tar.gz", hash = "sha256:8eb9e2bc2f8c97e37a2dc85a09ecdcdec9d8a396530a6d5a33b30b9a92da0c5c"},
+    {file = "et_xmlfile-2.0.0-py3-none-any.whl", hash = "sha256:7a91720bc756843502c3b7504c77b8fe44217c85c537d85037f0f536151b2caa"},
+    {file = "et_xmlfile-2.0.0.tar.gz", hash = "sha256:dab3f4764309081ce75662649be815c4c9081e88f0837825f90fd28317d4da54"},
 ]
 
 [[package]]
@@ -8266,4 +8266,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "1077264fd1eca25b28164cb944d63e5add5903ee8b0a10dd5ae87179a6ba4b80"
+content-hash = "f90afdb8f7a719943767de5bbda2753e30bd1d0a9697703af850a8c4198966ef"
