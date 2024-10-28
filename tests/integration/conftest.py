@@ -1,5 +1,3 @@
-import os
-
 import pytest
 from airflow.hooks.base import BaseHook
 from sqlalchemy import create_engine
@@ -22,8 +20,8 @@ def sftp_dl(sftp_conn):
 
 
 @pytest.fixture
-def sqlite_database() -> str:
-    db_file_path = os.path.abspath('test.db')
+def sqlite_database(tmp_path) -> str:
+    db_file_path = tmp_path / 'test.db'
     url = f'sqlite:///{db_file_path}'
     engine = create_engine(url)
     _create_database(engine.url)

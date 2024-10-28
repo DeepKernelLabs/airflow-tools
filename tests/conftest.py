@@ -14,12 +14,14 @@ import boto3
 import pendulum
 import pytest
 from airflow import DAG
+
 try:
     from airflow.auth.managers.fab.models import User  # noqa # type: ignore
 except ImportError:
     from airflow.providers.fab.auth_manager.models import User  # noqa # type: ignore
 
 from airflow.models.dagrun import DagRunNote  # noqa
+from airflow.utils.db import provide_session
 
 
 @pytest.fixture
@@ -42,6 +44,18 @@ def load_airflow_test_config() -> Path:
     from airflow.configuration import conf
 
     return conf.load_test_config()
+
+
+@pytest.fixture
+def sa_session():
+    @provide_session
+    def create_airflow_session(session=None):
+        return session
+
+    session = create_airflow_session()
+    yield session
+    session.expunge_all()
+    session.close()
 
 
 @pytest.fixture
