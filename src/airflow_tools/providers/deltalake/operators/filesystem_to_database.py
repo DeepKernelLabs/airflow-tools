@@ -41,7 +41,7 @@ class FilesystemToDatabaseOperator(BaseOperator):
         db_schema: typing.Optional[str] = None,
         source_format: typing.Optional[Literal['csv', 'json', 'parquet']] = 'csv',
         source_format_options: typing.Optional[typing.Dict] = None,
-        table_aggretation_type: typing.Optional[
+        table_aggregation_type: typing.Optional[
             Literal['append', 'fail', 'replace']
         ] = 'append',
         metadata: typing.Optional[typing.Dict[str, str]] = None,
@@ -58,7 +58,7 @@ class FilesystemToDatabaseOperator(BaseOperator):
         self.db_schema = db_schema
         self.source_format = source_format
         self.source_format_options = source_format_options
-        self.table_aggretation_type = table_aggretation_type
+        self.table_aggregation_type = table_aggregation_type
         self.metadata = metadata or {'_DS': '{{ ds }}'}
 
     def execute(self, context):
@@ -92,7 +92,7 @@ class FilesystemToDatabaseOperator(BaseOperator):
                 name=self.db_table,
                 schema=self.db_schema,
                 con=engine,
-                if_exists=self.table_aggretation_type,
+                if_exists=self.table_aggregation_type,
                 index=False,
             )
 

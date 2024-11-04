@@ -12,7 +12,7 @@ class S3Filesystem(FilesystemProtocol):
     def read(self, path: str) -> bytes:
         bucket_name, key_name = _get_bucket_and_key_name(path)
         obj = self.hook.get_key(key_name, bucket_name)
-        return obj.get()["Body"]
+        return obj.get()["Body"].read()
 
     def write(self, data: str | bytes | BytesIO, path: str):
         bucket_name, key_name = _get_bucket_and_key_name(path)
@@ -48,7 +48,7 @@ class S3Filesystem(FilesystemProtocol):
 
     def list_files(self, prefix: str) -> list[str]:
         bucket_name, key_prefix = _get_bucket_and_key_name(prefix)
-        return [obj.key for obj in self.hook.list_keys(bucket_name, key_prefix)]
+        return [f'{bucket_name}/{obj}' for obj in self.hook.list_keys(bucket_name, key_prefix)]
 
 
 def _get_bucket_and_key_name(path: str) -> tuple[str, str]:
