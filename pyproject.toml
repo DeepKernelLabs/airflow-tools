@@ -49,6 +49,7 @@ werkzeug = "<3.0.0"
 connexion = "^2.14.2"
 boto3 = "^1.28.67"
 pytest-mock = "^3.12.0"
+requests-mock = "^1.12.1"
 
 [build-system]
 requires = ["poetry-core"]

@@ -2,6 +2,7 @@ import json
 
 import pendulum
 import pytest
+import requests_mock
 from botocore.exceptions import ClientError as BotoClientError
 
 from airflow_tools.exceptions import ApiResponseTypeError
@@ -49,7 +50,7 @@ def test_http_to_data_lake(dag, s3_bucket, s3_resource, monkeypatch):
 
 
 def test_http_to_data_lake_response_format_jsonl_with_jmespath_expression(
-    s3_bucket, monkeypatch
+    s3_bucket, monkeypatch,
 ):
     monkeypatch.setenv(
         'AIRFLOW_CONN_HTTP_TEST',
@@ -93,7 +94,7 @@ def test_http_to_data_lake_response_format_jsonl_with_jmespath_expression(
 
 
 def test_http_to_data_lake_response_format_jsonl_without_jmespath_expression(
-    s3_bucket, monkeypatch
+    s3_bucket, monkeypatch,
 ):
     # This is not a list without jmespath expression, so it should fail
     monkeypatch.setenv(
@@ -124,21 +125,26 @@ def test_http_to_data_lake_response_format_jsonl_without_jmespath_expression(
         json.dumps(
             {
                 'conn_type': 'http',
-                'host': 'https://cat-fact.herokuapp.com',
+                'host': 'http://test-airflow-tools.test',
             }
         ),
     )
-    http_to_data_lake_list_op = HttpToDataLake(
-        task_id='test_http_to_data_lake',
-        http_conn_id='http_test_list',
-        data_lake_conn_id='data_lake_test',
-        data_lake_path=s3_bucket + '/source1/entity1/{{ ds }}/',
-        endpoint='/facts',
-        method='GET',
-        save_format='jsonl',
-        jmespath_expression=None,
-    )
-    http_to_data_lake_list_op.execute({"ds": "2024-01-03"})
+    
+    with requests_mock.Mocker() as m:
+        m.get('http://test-airflow-tools.test/api/v2/test', 
+              text="""[{"id": 1, "email": "user1@test.com"}, {"id": 2, "email": "user2@test.com"}]""")
+        
+        http_to_data_lake_list_op = HttpToDataLake(
+            task_id='test_http_to_data_lake',
+            http_conn_id='http_test_list',
+            data_lake_conn_id='data_lake_test',
+            data_lake_path=s3_bucket + '/source1/entity1/{{ ds }}/',
+            endpoint='/api/v2/test',
+            method='GET',
+            save_format='jsonl',
+            jmespath_expression=None,
+        )
+        http_to_data_lake_list_op.execute({"ds": "2024-01-03"})
 
     assert isinstance(http_to_data_lake_list_op.data, list)
 

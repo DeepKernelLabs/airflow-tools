@@ -4,6 +4,7 @@ import json
 import pandas as pd
 import pendulum
 import pytest
+import requests_mock
 from botocore.exceptions import ClientError as BotoClientError
 
 from airflow_tools.exceptions import ApiResponseTypeError
@@ -126,21 +127,26 @@ def test_http_to_data_lake_response_format_jsonl_without_jmespath_expression(
         json.dumps(
             {
                 'conn_type': 'http',
-                'host': 'https://cat-fact.herokuapp.com',
+                'host': 'http://test-airflow-tools.test',
             }
         ),
     )
-    http_to_data_lake_list_op = HttpToFilesystem(
-        task_id='test_http_to_data_lake',
-        http_conn_id='http_test_list',
-        filesystem_conn_id='data_lake_test',
-        filesystem_path=s3_bucket + '/source1/entity1/{{ ds }}/',
-        endpoint='/facts',
-        method='GET',
-        save_format='jsonl',
-        jmespath_expression=None,
-    )
-    http_to_data_lake_list_op.execute({"ds": "2024-01-03"})
+    
+    with requests_mock.Mocker() as m:
+        m.get('http://test-airflow-tools.test/api/v2/test', 
+              text="""[{"id": 1, "email": "user1@test.com"}, {"id": 2, "email": "user2@test.com"}]""")
+        
+        http_to_data_lake_list_op = HttpToFilesystem(
+            task_id='test_http_to_data_lake',
+            http_conn_id='http_test_list',
+            filesystem_conn_id='data_lake_test',
+            filesystem_path=s3_bucket + '/source1/entity1/{{ ds }}/',
+            endpoint='/api/v2/test',
+            method='GET',
+            save_format='jsonl',
+            jmespath_expression=None,
+        )
+        http_to_data_lake_list_op.execute({"ds": "2024-01-03"})
 
     assert isinstance(http_to_data_lake_list_op.data, list)
 
