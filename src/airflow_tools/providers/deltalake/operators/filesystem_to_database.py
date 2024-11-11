@@ -45,6 +45,7 @@ class FilesystemToDatabaseOperator(BaseOperator):
             Literal['append', 'fail', 'replace']
         ] = 'append',
         metadata: typing.Optional[typing.Dict[str, str]] = None,
+        include_source_path: bool = True,
         *args,
         **kwargs,
     ) -> None:
@@ -60,33 +61,42 @@ class FilesystemToDatabaseOperator(BaseOperator):
         self.source_format_options = source_format_options
         self.table_aggregation_type = table_aggregation_type
         self.metadata = metadata or {'_DS': '{{ ds }}'}
+        self.include_source_path = include_source_path
 
     def execute(self, context):
-        logger.info('Create conn for filesystem')
+        logger.info(f'Create connection for filesystem ({self.filesystem_conn_id})')
         filesystem = FilesystemFactory.get_data_lake_filesystem(
             connection=BaseHook.get_connection(self.filesystem_conn_id),
         )
 
+        logger.info(f'Create SQLAlchemy engine with connection_id {self.database_conn_id}')
         engine = create_engine(
             BaseHook.get_connection(self.database_conn_id).get_hook().get_uri()
         )
+        
+        for blob_path in filesystem.list_files(prefix=self.filesystem_path):
 
-        for blob in filesystem.list_files(prefix=self.filesystem_path):
-
-            if not blob.endswith(
+            if not blob_path.endswith(
                 (f'.{self.source_format}', f'.{self.source_format}.gz')
             ):
-                logger.warning(f'Blob {blob} is not in the right format. Skipping...')
+                logger.warning(f'Blob {blob_path} is not in the right format. Skipping...')
                 continue
 
-            logger.info(f'Read file {blob} and convert to pandas')
-            raw_content = io.BytesIO(filesystem.read(blob))
+            logger.info(f'Read file {blob_path} and convert to pandas')
+            raw_content = io.BytesIO(filesystem.read(blob_path))
 
             df = self.raw_content_to_pandas(path_or_buf=raw_content)
 
             for key, value in self.metadata.items():
                 df[key] = value
-            df['_LOADED_FROM'] = blob
+                
+                if key.startswith('_'):
+                    # _* fields are treated as metadata and we try to convert them in datetimes
+                    df[key] = self._convert_to_datetime(df[key])
+                    
+            if self.include_source_path:
+                df['_LOADED_FROM'] = blob_path
+                df['_LOADED_AT'] = df['_LOADED_AT'].astype('string')
 
             df.to_sql(
                 name=self.db_table,
@@ -95,6 +105,13 @@ class FilesystemToDatabaseOperator(BaseOperator):
                 if_exists=self.table_aggregation_type,
                 index=False,
             )
+            
+    @staticmethod
+    def _convert_to_datetime(value):
+        try:
+            return pd.to_datetime(value)
+        except ValueError:
+            return value
 
     def raw_content_to_pandas(self, path_or_buf: typing.Union[str, bytes, io.StringIO]):
         options = self.source_format_options or {}
