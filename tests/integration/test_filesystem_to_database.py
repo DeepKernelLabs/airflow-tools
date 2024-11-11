@@ -60,21 +60,20 @@ def test_execute_with_a_single_output(
     dag_run = dag.test(execution_date=execution_date, session=sa_session)
 
     source_sql_hook = BaseHook.get_connection('sqlite_test').get_hook()
-    df = source_sql_hook.get_pandas_df(sql='SELECT * FROM test_table')
+    df = source_sql_hook.get_pandas_df(sql='SELECT * FROM test_table', parse_dates=['_DS', '_INTERVAL_START', '_INTERVAL_END', '_LOADED_AT'])
 
     # Example of expected result
-    #    a  b  c         _DS            _INTERVAL_START              _INTERVAL_END                        _LOADED_AT       _LOADED_FROM
-    # 0  1  2  3  2023-10-01  2023-09-30T00:00:00+00:00  2023-10-01T00:00:00+00:00  2024-10-25T12:54:13.211896+02:00  /tmp/.../test.csv
-    # 1  4  5  6  2023-10-01  2023-09-30T00:00:00+00:00  2023-10-01T00:00:00+00:00  2024-10-25T12:54:13.211896+02:00  /tmp/.../test.csv
-    # 2  7  8  9  2023-10-01  2023-09-30T00:00:00+00:00  2023-10-01T00:00:00+00:00  2024-10-25T12:54:13.211896+02:00  /tmp/.../test.csv
+    #    a  b  c                         _DS            _INTERVAL_START              _INTERVAL_END                        _LOADED_AT       _LOADED_FROM
+    # 0  1  2  3  2023-10-01 00:00:00.000000  2023-09-30T00:00:00+00:00  2023-10-01T00:00:00+00:00  2024-10-25T12:54:13.211896+02:00  /tmp/.../test.csv
+    # 1  4  5  6  2023-10-01 00:00:00.000000  2023-09-30T00:00:00+00:00  2023-10-01T00:00:00+00:00  2024-10-25T12:54:13.211896+02:00  /tmp/.../test.csv
+    # 2  7  8  9  2023-10-01 00:00:00.000000  2023-09-30T00:00:00+00:00  2023-10-01T00:00:00+00:00  2024-10-25T12:54:13.211896+02:00  /tmp/.../test.csv
 
     assert len(df) == 3
-
-    assert df.iloc[0]['_DS'] == execution_date.date().isoformat()
+    assert str(df.iloc[0]['_DS']) == execution_date.to_datetime_string()
     assert (
-        df.iloc[0]['_INTERVAL_START']
-        == (execution_date - pendulum.duration(days=1)).isoformat()
+        str(df.iloc[0]['_INTERVAL_START'])
+        == (execution_date - pendulum.duration(days=1)).to_datetime_string()
     )
-    assert df.iloc[0]['_INTERVAL_END'] == execution_date.isoformat()
+    assert str(df.iloc[0]['_INTERVAL_END']) == execution_date.to_datetime_string()
     assert df.iloc[0]['_LOADED_FROM'] == str(folder_path / 'test.csv')
-    assert df.iloc[0]['_LOADED_AT'] == loaded_at.isoformat()
+    assert str(df.iloc[0]['_LOADED_AT']) == loaded_at.isoformat().replace('T', ' ')
