@@ -96,7 +96,7 @@ class FilesystemToDatabaseOperator(BaseOperator):
                     
             if self.include_source_path:
                 df['_LOADED_FROM'] = blob_path
-                df['_LOADED_AT'] = df['_LOADED_AT'].astype('string')
+                df['_LOADED_FROM'] = df['_LOADED_FROM'].astype('string')
 
             df.to_sql(
                 name=self.db_table,
