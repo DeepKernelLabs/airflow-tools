@@ -93,10 +93,11 @@ class FilesystemToDatabaseOperator(BaseOperator):
                 if key.startswith('_'):
                     # _* fields are treated as metadata and we try to convert them in datetimes
                     df[key] = self._convert_to_datetime(df[key])
+                    print(df)
                     
             if self.include_source_path:
                 df['_LOADED_FROM'] = blob_path
-                df['_LOADED_AT'] = df['_LOADED_AT'].astype('string')
+                df['_LOADED_FROM'] = df['_LOADED_FROM'].astype('string')
 
             df.to_sql(
                 name=self.db_table,

@@ -57,7 +57,7 @@ def test_execute_with_a_single_output(
     # dag_run = test_dag_with_session(execution_date=execution_date)
 
     execution_date = pendulum.datetime(2023, 10, 1)
-    dag_run = dag.test(execution_date=execution_date, session=sa_session)
+    dag.test(execution_date=execution_date, session=sa_session)
 
     source_sql_hook = BaseHook.get_connection('sqlite_test').get_hook()
     df = source_sql_hook.get_pandas_df(sql='SELECT * FROM test_table', parse_dates=['_DS', '_INTERVAL_START', '_INTERVAL_END', '_LOADED_AT'])
@@ -76,4 +76,4 @@ def test_execute_with_a_single_output(
     )
     assert str(df.iloc[0]['_INTERVAL_END']) == execution_date.to_datetime_string()
     assert df.iloc[0]['_LOADED_FROM'] == str(folder_path / 'test.csv')
-    assert str(df.iloc[0]['_LOADED_AT']) == loaded_at.isoformat().replace('T', ' ')
+    assert str(df.iloc[0]['_LOADED_AT']) == loaded_at.isoformat().replace('T', ' ').split('+')[0]
