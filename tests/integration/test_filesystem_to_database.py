@@ -2,7 +2,6 @@ import json
 import numpy as np 
 import pendulum
 import textwrap
-import pytest
 
 from airflow.hooks.base import BaseHook
 
@@ -114,8 +113,8 @@ def test_source_file_with_less_columns_that_database(
     source_sql_hook = BaseHook.get_connection('sqlite_test').get_hook()
     source_sql_hook.run(
         sql=[
-            f'CREATE TABLE test_csv_with_less_columns_that_database (a int, b int, c int, d int, "_DS" date);',
-            f'INSERT INTO test_csv_with_less_columns_that_database VALUES (0, 0, 0, 0, "2024-07-31 00:00:00.000000");'
+            'CREATE TABLE test_csv_with_less_columns_that_database (a int, b int, c int, d int, "_DS" date);',
+            'INSERT INTO test_csv_with_less_columns_that_database VALUES (0, 0, 0, 0, "2024-07-31 00:00:00.000000");'
         ]
     )
 
@@ -166,8 +165,8 @@ def test_source_file_with_more_columns_than_database(
     source_sql_hook = BaseHook.get_connection('sqlite_test').get_hook()
     source_sql_hook.run(
         sql=[
-            f'CREATE TABLE test_csv_with_more_columns_than_database (a int, b int, "_DS" date);',
-            f'INSERT INTO test_csv_with_more_columns_than_database VALUES (0, 0, "2024-07-31 00:00:00.000000");'
+            'CREATE TABLE test_csv_with_more_columns_than_database (a int, b int, "_DS" date);',
+            'INSERT INTO test_csv_with_more_columns_than_database VALUES (0, 0, "2024-07-31 00:00:00.000000");'
         ]
     )
 
@@ -218,8 +217,8 @@ def test_source_file_and_database_with_different_columns(
     source_sql_hook = BaseHook.get_connection('sqlite_test').get_hook()
     source_sql_hook.run(
         sql=[
-            f'CREATE TABLE test_csv_with_more_columns_than_database (a int, d int, _DS date);',
-            f'INSERT INTO test_csv_with_more_columns_than_database VALUES (0, 0, "2024-07-31 00:00:00.000000");'
+            'CREATE TABLE test_csv_with_more_columns_than_database (a int, d int, _DS date);',
+            'INSERT INTO test_csv_with_more_columns_than_database VALUES (0, 0, "2024-07-31 00:00:00.000000");'
         ]
     )
 
