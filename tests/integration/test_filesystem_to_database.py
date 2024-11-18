@@ -244,8 +244,8 @@ def test_source_file_and_database_with_different_columns(
     # 1  1  NaN  2023-10-01 00:00:00.000000  3.0  2.0  # \
     # 2  4  NaN  2023-10-01 00:00:00.000000  6.0  5.0  # |> Added from csv
     # 3  7  NaN  2023-10-01 00:00:00.000000  9.0  8.0  # /
-
+    
     assert set(df.columns) == {'a', 'b', 'c', 'd', '_DS'}
     assert len(df) == 4
-    assert all([np.isnan(i) for i in [df.iloc[0].c, df.iloc[1].d]])
-    assert all([np.isnan(i) for i in [df.iloc[1].d, df.iloc[2].d, df.iloc[3].d]])
+    assert all([np.isnan(i) for i in [df.iloc[0].b, df.iloc[0].c]])  # Original row
+    assert all([np.isnan(i) for i in [df.iloc[1].d, df.iloc[2].d, df.iloc[3].d]])  # Added from source file
