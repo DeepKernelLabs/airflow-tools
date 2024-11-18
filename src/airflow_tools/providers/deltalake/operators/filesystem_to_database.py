@@ -6,7 +6,7 @@ import typing
 import pandas as pd
 from airflow.hooks.base import BaseHook
 from airflow.models import BaseOperator
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, engine, Integer, Float, String, DateTime, Boolean
 
 from airflow_tools.filesystems.filesystem_factory import FilesystemFactory
 
@@ -17,6 +17,15 @@ else:
 
 logger = logging.getLogger(__name__)
 
+
+type_mapping = {
+    'int64': Integer, 'int': Integer, 'integer': Integer,
+    'float64': Float, 'float': Float, 
+    'object': String, 'string': String, 'str': String,
+    'datetime64[ns]': DateTime,
+    'bool': Boolean, 'boolean': Boolean,
+    
+}
 
 class FilesystemToDatabaseOperator(BaseOperator):
     """
@@ -86,6 +95,8 @@ class FilesystemToDatabaseOperator(BaseOperator):
             raw_content = io.BytesIO(filesystem.read(blob_path))
 
             df = self.raw_content_to_pandas(path_or_buf=raw_content)
+            
+            self._check_and_fix_column_differences(df, self.db_table, engine)   
 
             for key, value in self.metadata.items():
                 df[key] = value
@@ -106,6 +117,43 @@ class FilesystemToDatabaseOperator(BaseOperator):
                 index=False,
             )
             
+    def _check_and_fix_column_differences(self, df: pd.DataFrame, table_name: str, engine: engine.Engine):
+        """
+        This method checks if the columns in the dataframe are the same as the
+        ones in the database table. If they are not, it adds the missing 
+        columns to the database table or fills them with None.
+
+        Args:
+            df (pd.DataFrame): dataframe to be inserted into the database
+            table_name (str): name of the database table
+            engine (engine.Engine): SQLAlchemy engine object for the database connection
+        """
+        inspector = inspect(engine)
+
+        if table_name in inspector.get_table_names():
+            source_file_columns = set(df.columns.tolist())
+            table_columns = set([col['name'] for col in inspector.get_columns(self.db_table) if col['name'] not in self.metadata])
+            
+            # Column in source file but not present in db table
+            only_csv_columns = source_file_columns - table_columns          
+            with engine.connect() as conn:
+                for column in only_csv_columns:
+                    logger.warning(
+                        f'Table "{table_name}" does not have column "{column}" present in the source file, '
+                        f'column "{column}" will be filled with null values.'
+                    )
+                    sqlalchemy_type = type_mapping.get(df.dtypes.get(column), String)
+                    conn.execute(f'ALTER TABLE {table_name} ADD COLUMN "{column}" {sqlalchemy_type.__name__}')
+            
+            # Column in db table but not present in the source file
+            only_db_table_columns = table_columns - source_file_columns
+            for column in only_db_table_columns:
+                logger.warning(
+                    f'Source file does not have column "{column}" present in the table "{table_name}", '
+                    f'column "{column}" will be filled with null values.'
+                )
+                df[column] = None          
+        
     @staticmethod
     def _convert_to_datetime(value):
         try:

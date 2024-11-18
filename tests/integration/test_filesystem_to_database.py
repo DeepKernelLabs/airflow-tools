@@ -1,6 +1,9 @@
 import json
-
+import numpy as np 
 import pendulum
+import textwrap
+import pytest
+
 from airflow.hooks.base import BaseHook
 
 from airflow_tools.providers.deltalake.operators.filesystem_to_database import (
@@ -8,9 +11,8 @@ from airflow_tools.providers.deltalake.operators.filesystem_to_database import (
 )
 
 
-def test_execute_with_a_single_output(
-    dag, sa_session, tmp_path, sqlite_database, monkeypatch
-):
+
+def _setup_initial_environment(tmp_path, sqlite_database, monkeypatch):
     monkeypatch.setenv(
         'AIRFLOW_CONN_SQLITE_TEST',
         json.dumps(
@@ -29,7 +31,22 @@ def test_execute_with_a_single_output(
     folder_path = tmp_path / 'data_lake/2023/10/01/'
     folder_path.mkdir(parents=True, exist_ok=True)
     file_path = folder_path / 'test.csv'
-    file_path.write_text('a,b,c\n1,2,3\n4,5,6\n7,8,9')
+    file_path.write_text(
+        textwrap.dedent('''
+            a,b,c
+            1,2,3
+            4,5,6
+            7,8,9
+        ''')
+    )
+    
+    return folder_path 
+
+def test_source_file_to_database(
+    dag, sa_session, tmp_path, sqlite_database, monkeypatch
+):
+    
+    folder_path = _setup_initial_environment(tmp_path, sqlite_database, monkeypatch)
 
     loaded_at = pendulum.now()
     with dag:
@@ -77,3 +94,159 @@ def test_execute_with_a_single_output(
     assert str(df.iloc[0]['_INTERVAL_END']) == execution_date.to_datetime_string()
     assert df.iloc[0]['_LOADED_FROM'] == str(folder_path / 'test.csv')
     assert str(df.iloc[0]['_LOADED_AT']) == loaded_at.isoformat().replace('T', ' ').split('+')[0]
+
+
+def test_source_file_with_less_columns_that_database(
+    dag, sa_session, tmp_path, sqlite_database, monkeypatch
+):
+    """
+    Check behavior when source file has less columns than the database table.
+    Example:
+        - Source file has 3 columns ([a, b, c] + metadata)
+        - Table in the database has 4 columns ([a, b, c, d] + metadata)
+    
+    The FilesystemToDatabaseOperator should add the columns using a null value on columns
+    not defined in the csv file. 
+    """
+    
+    _setup_initial_environment(tmp_path, sqlite_database, monkeypatch)
+    
+    source_sql_hook = BaseHook.get_connection('sqlite_test').get_hook()
+    source_sql_hook.run(
+        sql=[
+            f'CREATE TABLE test_csv_with_less_columns_that_database (a int, b int, c int, d int, "_DS" date);',
+            f'INSERT INTO test_csv_with_less_columns_that_database VALUES (0, 0, 0, 0, "2024-07-31 00:00:00.000000");'
+        ]
+    )
+
+    with dag:
+        FilesystemToDatabaseOperator(
+            filesystem_conn_id='local_fs_test',
+            database_conn_id='sqlite_test',
+            filesystem_path='data_lake/{{ ds.replace("-", "/") }}/',
+            db_table='test_csv_with_less_columns_that_database',
+            task_id='filesystem_to_database_test',
+            metadata={'_DS': '{{ ds }}'},
+            include_source_path=False,
+        )
+
+    execution_date = pendulum.datetime(2023, 10, 1)
+    dag.test(execution_date=execution_date, session=sa_session)
+
+    df = source_sql_hook.get_pandas_df(sql='SELECT * FROM test_csv_with_less_columns_that_database')
+    
+    # Expected result 
+    #    a  b  c    d                         _DS
+    # 0  0  0  0  0.0  2024-07-31 00:00:00.000000  # Original row
+    # 1  1  2  3  NaN  2023-10-01 00:00:00.000000  # \
+    # 2  4  5  6  NaN  2023-10-01 00:00:00.000000  #  |> Added from csv  
+    # 3  7  8  9  NaN  2023-10-01 00:00:00.000000  # /
+
+    assert set(df.columns) == {'a', 'b', 'c', 'd', '_DS'}
+    assert len(df) == 4
+    assert df.iloc[0].d == 0
+    assert all([np.isnan(i) for i in [df.iloc[1].d, df.iloc[2].d, df.iloc[3].d]])
+
+
+def test_source_file_with_more_columns_than_database(
+    dag, sa_session, tmp_path, sqlite_database, monkeypatch
+):
+    """
+    Check behavior when source file has more columns than the database table.
+    Example:
+        - Source file has 3 columns ([a, b, c] + metadata)
+        - Table in the database has 2 columns ([a, b] + metadata)
+    
+    The FilesystemToDatabaseOperator should add the columns using a null value on columns
+    not defined in the source file. 
+    """
+    
+    _setup_initial_environment(tmp_path, sqlite_database, monkeypatch)
+    
+    source_sql_hook = BaseHook.get_connection('sqlite_test').get_hook()
+    source_sql_hook.run(
+        sql=[
+            f'CREATE TABLE test_csv_with_more_columns_than_database (a int, b int, "_DS" date);',
+            f'INSERT INTO test_csv_with_more_columns_than_database VALUES (0, 0, "2024-07-31 00:00:00.000000");'
+        ]
+    )
+
+    with dag:
+        FilesystemToDatabaseOperator(
+            filesystem_conn_id='local_fs_test',
+            database_conn_id='sqlite_test',
+            filesystem_path='data_lake/{{ ds.replace("-", "/") }}/',
+            db_table='test_csv_with_more_columns_than_database',
+            task_id='filesystem_to_database_test',
+            metadata={'_DS': '{{ ds }}'},
+            include_source_path=False,
+        )
+
+    execution_date = pendulum.datetime(2023, 10, 1)
+    dag.test(execution_date=execution_date, session=sa_session)
+
+    df = source_sql_hook.get_pandas_df(sql='SELECT * FROM test_csv_with_more_columns_than_database')
+    
+    # Expected result 
+    #    a  b                         _DS    c
+    # 0  0  0  2024-07-31 00:00:00.000000  NaN  # Original row
+    # 1  1  2  2023-10-01 00:00:00.000000  3.0  # \
+    # 2  4  5  2023-10-01 00:00:00.000000  6.0  #  |> Added from csv  
+    # 3  7  8  2023-10-01 00:00:00.000000  9.0  # /
+    
+    assert set(df.columns) == {'a', 'b', 'c', '_DS'}
+    assert len(df) == 4
+    assert np.isnan(df.iloc[0].c)
+
+
+def test_source_file_and_database_with_different_columns(
+    dag, sa_session, tmp_path, sqlite_database, monkeypatch
+):
+    """
+    Check behavior when source file has columns not present in the database and the source 
+    file has columns not present in source file.
+    Example:
+        - Source file has 3 columns ([a, b, c] + metadata)
+        - Table in the database has 2 columns ([a, d] + metadata)
+    
+    The FilesystemToDatabaseOperator should add the columns using a null value on columns
+    not defined in the source file. 
+    """
+    
+    _setup_initial_environment(tmp_path, sqlite_database, monkeypatch)
+    
+    source_sql_hook = BaseHook.get_connection('sqlite_test').get_hook()
+    source_sql_hook.run(
+        sql=[
+            f'CREATE TABLE test_csv_with_more_columns_than_database (a int, d int, _DS date);',
+            f'INSERT INTO test_csv_with_more_columns_than_database VALUES (0, 0, "2024-07-31 00:00:00.000000");'
+        ]
+    )
+
+    with dag:
+        FilesystemToDatabaseOperator(
+            filesystem_conn_id='local_fs_test',
+            database_conn_id='sqlite_test',
+            filesystem_path='data_lake/{{ ds.replace("-", "/") }}/',
+            db_table='test_csv_with_more_columns_than_database',
+            task_id='filesystem_to_database_test',
+            metadata={'_DS': '{{ ds }}'},
+            include_source_path=False,
+        )
+
+    execution_date = pendulum.datetime(2023, 10, 1)
+    dag.test(execution_date=execution_date, session=sa_session)
+
+    df = source_sql_hook.get_pandas_df(sql='SELECT * FROM test_csv_with_more_columns_than_database')
+    
+    # Expected result 
+    #    a    d                         _DS    c    b
+    # 0  0  0.0  2024-07-31 00:00:00.000000  NaN  NaN # Original row
+    # 1  1  NaN  2023-10-01 00:00:00.000000  3.0  2.0  # \
+    # 2  4  NaN  2023-10-01 00:00:00.000000  6.0  5.0  # |> Added from csv
+    # 3  7  NaN  2023-10-01 00:00:00.000000  9.0  8.0  # /
+
+    assert set(df.columns) == {'a', 'b', 'c', 'd', '_DS'}
+    assert len(df) == 4
+    assert all([np.isnan(i) for i in [df.iloc[0].c, df.iloc[1].d]])
+    assert all([np.isnan(i) for i in [df.iloc[1].d, df.iloc[2].d, df.iloc[3].d]])
