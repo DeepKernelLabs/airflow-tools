@@ -67,6 +67,39 @@ HttpToFilesystem(
 )
 ```
 
+## Sensors
+
+### Filesystem (generic) File Sensor 
+This sensor checks if a file exists in a generic filesystem. 
+Type of filesystem is determined by the connection type.
+
+Current supported filesystem connections are (`conn_type` parameter):
+
+- `aws` (s3)
+- `azure_databricks_volume`
+- `azure_file_share_sp`
+- `sftp`
+- `fs` (LocalFileSystem)
+- `google_cloud_platform`
+- `wasb` (BlobStorageFilesystem)
+
+For example, with a connection with a S3 filesystem:
+
+```bash
+AIRFLOW_CONN_TEST_S3_FILESYSTEM='{"conn_type": "aws", "extra": {"endpoint_url": "http://localhost:9090"}}'
+```
+
+You can use a sensor like this:
+```python
+FilesystemFileSensor(
+    task_id='check_file_existence_exist_in_s3',
+    filesystem_conn_id='test_s3_filesystem',
+    source_path='data_lake/2023/10/01/test.csv',
+    poke_interval=60,
+    timeout=300, 
+)
+```
+
 #### JMESPATH expressions
 APIs often return the response we are interested in wrapped in a key. JMESPATH expressions are a query language that we can use to select the response we are interested in. You can find more information on JMESPATH expressions and test them [here](https://jmespath.org/).
 
