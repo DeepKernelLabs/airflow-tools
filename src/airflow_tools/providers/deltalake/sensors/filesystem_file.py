@@ -14,9 +14,10 @@ class FilesystemFileSensor(BaseSensorOperator):
 
     Current supported filesystems:
 
-    - 'aws'
+    - 'aws' (S3)
     - 'azure_databricks_volume'
     - 'azure_file_share_sp'
+    - 'sftp'
     - 'fs' (LocalFileSystem)
     - 'google_cloud_platform'
     - 'wasb' (BlobStorageFilesystem)
