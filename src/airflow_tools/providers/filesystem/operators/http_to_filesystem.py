@@ -1,9 +1,11 @@
 import json
+import uuid
 from io import BytesIO, StringIO
 from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, Protocol
 
 import jmespath
 import pandas as pd
+
 from airflow.hooks.base import BaseHook
 from airflow.models import BaseOperator
 
@@ -12,10 +14,10 @@ try:
 except ImportError:
     from airflow.providers.http.operators.http import SimpleHttpOperator as HttpOperator
 
-from airflow.utils.context import Context
-from airflow.utils.helpers import merge_dicts
 from requests import Response
 
+from airflow.utils.context import Context
+from airflow.utils.helpers import merge_dicts
 from airflow_tools.compression_utils import CompressionOptions, compress
 from airflow_tools.exceptions import ApiResponseTypeError
 from airflow_tools.filesystems.filesystem_factory import FilesystemFactory
@@ -27,8 +29,7 @@ SaveFormat = Literal['jsonl']
 
 
 class Transformation(Protocol):
-    def __call__(self, data: bytes, **kwargs) -> bytes:
-        ...
+    def __call__(self, data: bytes, **kwargs) -> bytes: ...
 
 
 class HttpBatchOperator(HttpOperator):
@@ -135,6 +136,7 @@ class HttpToFilesystem(BaseOperator):
         create_file_on_success: str | None = None,
         data_transformation: Optional[Transformation] = None,
         data_transformation_kwargs: dict[str, Any] | None = None,
+        file_number_start: int = 1,
         *args,
         **kwargs,
     ):
@@ -159,6 +161,7 @@ class HttpToFilesystem(BaseOperator):
 
         self.save_format = save_format
         self.source_format = source_format if source_format else save_format
+        self.file_number_start = file_number_start
         self.kwargs = kwargs
 
         if (
@@ -183,7 +186,7 @@ class HttpToFilesystem(BaseOperator):
 
     def execute(self, context: 'Context') -> Any:
         http_batch_operator = HttpBatchOperator(
-            task_id='http-operator',
+            task_id=f'http-operator-{uuid.uuid4()}',
             http_conn_id=self.http_conn_id,
             endpoint=self.endpoint,
             method=self.method,
@@ -198,7 +201,7 @@ class HttpToFilesystem(BaseOperator):
                 context,
                 use_new_data_parameters_on_pagination=self.use_new_data_parameters_on_pagination,
             ),
-            start=1,
+            start=self.file_number_start,
         ):
             filesystem_protocol = FilesystemFactory.get_data_lake_filesystem(
                 connection=BaseHook.get_connection(self.filesystem_conn_id),
@@ -277,6 +280,32 @@ class HttpToFilesystem(BaseOperator):
                 raise NotImplementedError(
                     f'Unknown source_format/save_format: {self.source_format}'
                 )
+
+
+class MultiHttpToFilesystem(HttpToFilesystem):
+    """Inherits from HttpToFilesystem but allows calling the same endpoint with multiple parameters and
+    joining the results in a single entity"""
+
+    def __init__(
+        self,
+        multi_data: list[dict],
+        *args,
+        **kwargs,
+    ):
+        # Check pre-conditions
+        if kwargs.get('pagination_function') is not None:
+            raise ValueError('Pagination is not supported in MultiHttpToFilesystem')
+        if kwargs.get('data') is None:
+            raise ValueError('Data must be provided for MultiHttpToFilesystem')
+        super().__init__(*args, **kwargs)
+        self.multi_data = multi_data
+
+    def execute(self, context):
+        self.base_data = self.data
+        for i, record in enumerate(self.multi_data, 1):
+            self.file_number_start = i
+            self.data = {**record, **self.base_data}
+            super().execute(context)
 
 
 def list_to_jsonl(data: list[dict], compression: 'CompressionOptions') -> BytesIO:
