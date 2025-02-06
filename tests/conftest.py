@@ -7,20 +7,15 @@ FAILED tests/integration/test_http_to_data_lake.py::test_http_to_data_lake - sql
 
 TODO: Remove this in the future once airflow fixes it
 """
+
 import os
 from pathlib import Path
 
 import boto3
 import pendulum
 import pytest
+
 from airflow import DAG
-
-try:
-    from airflow.auth.managers.fab.models import User  # noqa # type: ignore
-except ImportError:
-    from airflow.providers.fab.auth_manager.models import User  # noqa # type: ignore
-
-from airflow.models.dagrun import DagRunNote  # noqa
 from airflow.utils.db import provide_session
 
 
@@ -88,3 +83,13 @@ def s3_resource():
 def s3_client():
     endpoint_url = os.environ['S3_ENDPOINT_URL']
     return boto3.client('s3', endpoint_url=endpoint_url)
+
+
+@pytest.fixture
+def local_fs_conn_params(tmp_path):
+    return {
+        'conn_type': 'fs',
+        'extra': {
+            'path': str(tmp_path),
+        },
+    }
