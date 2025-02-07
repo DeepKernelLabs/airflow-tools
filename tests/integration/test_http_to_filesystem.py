@@ -75,10 +75,10 @@ def test_http_to_data_lake_response_format_jsonl_with_jmespath_expression(
     )
     http_to_data_lake_op.execute({"ds": "2024-01-03"})
 
-    assert isinstance(http_to_data_lake_op. response_filter_data, list)
-    assert len(http_to_data_lake_op. response_filter_data) == 2
+    assert isinstance(http_to_data_lake_op.response_filter_data, list)
+    assert len(http_to_data_lake_op.response_filter_data) == 2
     assert (
-        'id' in http_to_data_lake_op. response_filter_data[0] and 'email' in http_to_data_lake_op. response_filter_data[0]
+        'id' in http_to_data_lake_op.response_filter_data[0] and 'email' in http_to_data_lake_op.response_filter_data[0]
     )
 
     with pytest.raises(ApiResponseTypeError):
@@ -175,8 +175,8 @@ def test_http_to_data_lake_response_format_json_with_jmespath_expression(
     )
     http_to_data_lake_op.execute({"ds": "2024-01-03"})
 
-    assert isinstance(http_to_data_lake_op. response_filter_data, dict)
-    assert http_to_data_lake_op. response_filter_data == {'page': 1, 'total': 12}
+    assert isinstance(http_to_data_lake_op.response_filter_data, dict)
+    assert http_to_data_lake_op.response_filter_data == {'page': 1, 'total': 12}
 
 
 def test_http_to_data_lake_response_format_json_without_jmespath_expression(
