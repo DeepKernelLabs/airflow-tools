@@ -255,6 +255,8 @@ class HttpToFilesystem(BaseOperator):
             data = response.content
         else:
             data = response.text
+        
+        self.response_filter_data = data
 
         # Check if we have a custom data transformation
         if self.data_transformation and self.data_transformation_kwargs:
