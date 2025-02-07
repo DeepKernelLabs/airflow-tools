@@ -146,7 +146,7 @@ def test_http_to_data_lake_response_format_jsonl_without_jmespath_expression(
         )
         http_to_data_lake_list_op.execute({"ds": "2024-01-03"})
 
-    assert isinstance(http_to_data_lake_list_op. response_filter_data, list)
+    assert isinstance(http_to_data_lake_list_op.data, list)
 
 
 def test_http_to_data_lake_response_format_json_with_jmespath_expression(
