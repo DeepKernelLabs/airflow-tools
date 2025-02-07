@@ -1,4 +1,5 @@
 import json
+import logging
 import uuid
 from io import BytesIO, StringIO
 from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, Protocol
@@ -137,6 +138,7 @@ class HttpToFilesystem(BaseOperator):
         data_transformation: Optional[Transformation] = None,
         data_transformation_kwargs: dict[str, Any] | None = None,
         file_number_start: int = 1,
+        strict_response_schema=True,
         *args,
         **kwargs,
     ):
@@ -162,6 +164,7 @@ class HttpToFilesystem(BaseOperator):
         self.save_format = save_format
         self.source_format = source_format if source_format else save_format
         self.file_number_start = file_number_start
+        self.strict_response_schema = strict_response_schema
         self.kwargs = kwargs
 
         if (
@@ -203,6 +206,11 @@ class HttpToFilesystem(BaseOperator):
             ),
             start=self.file_number_start,
         ):
+            if not self.strict_response_schema and not data:
+                logging.info(
+                    'No data returned from the API or response filter. Skipping this batch'
+                )
+                continue
             filesystem_protocol = FilesystemFactory.get_data_lake_filesystem(
                 connection=BaseHook.get_connection(self.filesystem_conn_id),
             )
@@ -231,7 +239,7 @@ class HttpToFilesystem(BaseOperator):
             self.jmespath_expression
             and self.source_format in self.json_response_source_format
         ):
-            self.data = jmespath.search(self.jmespath_expression, response.json())
+            data = jmespath.search(self.jmespath_expression, response.json())
 
         elif (
             self.jmespath_expression
@@ -241,40 +249,45 @@ class HttpToFilesystem(BaseOperator):
                 'JMESPath expression is only supported for json and jsonl save formats'
             )
         elif self.source_format in self.json_response_source_format:
-            self.data = response.json()
+            data = response.json()
 
         elif self.source_format in self.binary_response_source_format:
-            self.data = response.content
+            data = response.content
         else:
-            self.data = response.text
+            data = response.text
 
         # Check if we have a custom data transformation
         if self.data_transformation and self.data_transformation_kwargs:
-            return self.data_transformation(self.data, self.data_transformation_kwargs)
+            return self.data_transformation(data, self.data_transformation_kwargs)
         elif self.data_transformation:
-            return self.data_transformation(self.data)
+            return self.data_transformation(data)
 
         # If we don't have a custom data transformation, use the default one based on the source_format
 
         match self.source_format:
             case 'json':
-                return json_to_binary(self.data, self.compression)
+                return json_to_binary(data, self.compression)
 
             case 'jsonl':
-                if not isinstance(self.data, list):
+                if self.strict_response_schema and not isinstance(data, list):
                     raise ApiResponseTypeError(
                         'Expected response can\'t be transformed to jsonl. It is not  list[dict]'
                     )
-                return list_to_jsonl(self.data, self.compression)
+                elif not isinstance(data, list):
+                    logging.warning(
+                        'Expected response can\'t be transformed to jsonl. It is not  list[dict]'
+                    )
+                    return None
+                return list_to_jsonl(data, self.compression)
 
             case 'xml':
-                return xml_to_binary(self.data, self.compression)
+                return xml_to_binary(data, self.compression)
 
             case 'parquet':
-                return self.data
+                return data
 
             case 'csv':
-                return csv_to_binary(self.data, self.compression)
+                return csv_to_binary(data, self.compression)
 
             case _:
                 raise NotImplementedError(
@@ -285,6 +298,12 @@ class HttpToFilesystem(BaseOperator):
 class MultiHttpToFilesystem(HttpToFilesystem):
     """Inherits from HttpToFilesystem but allows calling the same endpoint with multiple parameters and
     joining the results in a single entity"""
+
+    template_fields = HttpToFilesystem.template_fields + ['multi_data']
+    template_fields_renderers = {
+        **HttpToFilesystem.template_fields_renderers,
+        'multi_data': 'py',
+    }
 
     def __init__(
         self,

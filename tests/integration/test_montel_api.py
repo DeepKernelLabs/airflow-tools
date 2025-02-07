@@ -54,9 +54,9 @@ def test_data_lake_delete_operator(dag, local_fs_conn_params):
         )
         call_ohlc_endpoint = MultiHttpToFilesystem(
             task_id='ohlc_data',
-            multi_data=[{"symbolKey": "NDX TFE DA"}, {"symbolKey": "ICE BRN M1"}],
+            multi_data=[{"symbolKey": "ICE BRN M2"}, {"symbolKey": "NDX GNM DA"}],
             http_conn_id='montel_api',
-            endpoint='derivatives/getmetadataforactivecontracts',
+            endpoint='derivatives/ohlc/get',
             method='GET',
             data={
                 'fields': '["Settlement", "Close"]',
@@ -72,6 +72,7 @@ def test_data_lake_delete_operator(dag, local_fs_conn_params):
             jmespath_expression='Elements',
             filesystem_conn_id='local_data_lake',
             filesystem_path='ohlc/{{ ds }}/',
+            strict_response_schema=False,
         )
         get_access_token >> print_token >> call_ohlc_endpoint
     dag.test(execution_date=pendulum.datetime(2023, 10, 1))
