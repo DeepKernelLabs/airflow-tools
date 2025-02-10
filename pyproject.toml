@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "airflow-tools"
-version = "0.11.1"
+version = "0.12.0"
 
 description = ""
 authors = ["Biel Llobera <biel_llobera@dkl.digital>"]
@@ -18,7 +18,7 @@ apache-airflow-providers-slack = "^8.5.1"
 boto3 = "^1.34.8"
 boto3-stubs = "^1.34.8"
 databricks-sdk = "^0.21.0"
-databricks-sql-connector = "^2"
+databricks-sql-connector = ">=2"
 deltalake = "^0.17.4"
 flask-session = "0.5.0"
 jmespath = "^1.0.1"

@@ -53,13 +53,13 @@ files = [
 
 [[package]]
 name = "aiohappyeyeballs"
-version = "2.4.4"
+version = "2.4.6"
 description = "Happy Eyeballs for asyncio"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 files = [
-    {file = "aiohappyeyeballs-2.4.4-py3-none-any.whl", hash = "sha256:a980909d50efcd44795c4afeca523296716d50cd756ddca6af8c65b996e27de8"},
-    {file = "aiohappyeyeballs-2.4.4.tar.gz", hash = "sha256:5fdd7d87889c63183afc18ce9271f9b0a7d32c2303e394468dd45d514a757745"},
+    {file = "aiohappyeyeballs-2.4.6-py3-none-any.whl", hash = "sha256:147ec992cf873d74f5062644332c539fcd42956dc69453fe5204195e560517e1"},
+    {file = "aiohappyeyeballs-2.4.6.tar.gz", hash = "sha256:9b05052f9042985d32ecbe4b59a77ae19c006a78f1344d7fdad69d28ded3d0b0"},
 ]
 
 [[package]]
@@ -1570,17 +1570,17 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.36.14"
+version = "1.36.15"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3-1.36.14-py3-none-any.whl", hash = "sha256:e2dab15944c3f517c88850d60b07f2f6fd3bc69aa51c47670e4f45d62a8c41fd"},
-    {file = "boto3-1.36.14.tar.gz", hash = "sha256:4b0b8dd593b95f32a5a761dee65094423fbd06a4ad09f26b2e6c80493139569f"},
+    {file = "boto3-1.36.15-py3-none-any.whl", hash = "sha256:b218092b08ce15fe29b2358345f4ccb812a2377a5e9bccd49e391a5976a24202"},
+    {file = "boto3-1.36.15.tar.gz", hash = "sha256:721d689ebd07a9a95f904356bd97f92032d8006a54eea25316ba55a7585ca7e9"},
 ]
 
 [package.dependencies]
-botocore = ">=1.36.14,<1.37.0"
+botocore = ">=1.36.15,<1.37.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.11.0,<0.12.0"
 
@@ -1589,13 +1589,13 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "boto3-stubs"
-version = "1.36.14"
-description = "Type annotations for boto3 1.36.14 generated with mypy-boto3-builder 8.9.0"
+version = "1.36.15"
+description = "Type annotations for boto3 1.36.15 generated with mypy-boto3-builder 8.9.0"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3_stubs-1.36.14-py3-none-any.whl", hash = "sha256:dcde60b21a4026719b82b7f4679ecd9af9372b3d0c9a7f45f1cf2c496bcf19b4"},
-    {file = "boto3_stubs-1.36.14.tar.gz", hash = "sha256:9eccdee8091b095a8ce5119b825dccba73555d88a813636b95c3ea2e57186e4f"},
+    {file = "boto3_stubs-1.36.15-py3-none-any.whl", hash = "sha256:0768bab3b03d9bcf7e1345eea881cd2d5ab17e41f21d63dac2660ee9438e3557"},
+    {file = "boto3_stubs-1.36.15.tar.gz", hash = "sha256:557562358f6d61b2ff36384f6d391ecc8211b69b2f5110eed3f689449dfa8024"},
 ]
 
 [package.dependencies]
@@ -1651,7 +1651,7 @@ bedrock-data-automation-runtime = ["mypy-boto3-bedrock-data-automation-runtime (
 bedrock-runtime = ["mypy-boto3-bedrock-runtime (>=1.36.0,<1.37.0)"]
 billing = ["mypy-boto3-billing (>=1.36.0,<1.37.0)"]
 billingconductor = ["mypy-boto3-billingconductor (>=1.36.0,<1.37.0)"]
-boto3 = ["boto3 (==1.36.14)"]
+boto3 = ["boto3 (==1.36.15)"]
 braket = ["mypy-boto3-braket (>=1.36.0,<1.37.0)"]
 budgets = ["mypy-boto3-budgets (>=1.36.0,<1.37.0)"]
 ce = ["mypy-boto3-ce (>=1.36.0,<1.37.0)"]
@@ -2014,13 +2014,13 @@ xray = ["mypy-boto3-xray (>=1.36.0,<1.37.0)"]
 
 [[package]]
 name = "botocore"
-version = "1.36.14"
+version = "1.36.15"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "botocore-1.36.14-py3-none-any.whl", hash = "sha256:546d0c071e9c8aeaca399d71bec414abe6434460f7d6640cbd92d4b1c3eb443e"},
-    {file = "botocore-1.36.14.tar.gz", hash = "sha256:53feff270078c23ba852fb2638fde6c5f74084cfc019dd5433e865cd04065c60"},
+    {file = "botocore-1.36.15-py3-none-any.whl", hash = "sha256:fe0f8d786029125f4c66a30b1d81a551f667b0915dac843604ffa0652c5ff475"},
+    {file = "botocore-1.36.15.tar.gz", hash = "sha256:ab8e69930ef6c42784eb2dee6c0256627ca6bba57730ebe3056179d28aa63d44"},
 ]
 
 [package.dependencies]
@@ -2036,13 +2036,13 @@ crt = ["awscrt (==0.23.8)"]
 
 [[package]]
 name = "botocore-stubs"
-version = "1.36.14"
+version = "1.36.15"
 description = "Type annotations and code completion for botocore"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "botocore_stubs-1.36.14-py3-none-any.whl", hash = "sha256:58f8e6eb37427b7bb81aa24984b10c90d124526b2ba741ebbe7d6e5690454ad0"},
-    {file = "botocore_stubs-1.36.14.tar.gz", hash = "sha256:54c7b6fe68d6e2a1eac827b1c0525554509a3481ed6ad5a0f4f2c487e00768d2"},
+    {file = "botocore_stubs-1.36.15-py3-none-any.whl", hash = "sha256:46730e2ae7352db23089c58287cae88c034f11235dffec8f4f882b789e18262e"},
+    {file = "botocore_stubs-1.36.15.tar.gz", hash = "sha256:d4852bafdf1f577c588f01334fbab4bbf43e61ee80651c218b482fdc6534d1a7"},
 ]
 
 [package.dependencies]
@@ -2574,33 +2574,30 @@ notebook = ["ipython (>=8,<9)", "ipywidgets (>=8,<9)"]
 
 [[package]]
 name = "databricks-sql-connector"
-version = "2.9.6"
+version = "4.0.0"
 description = "Databricks SQL Connector for Python"
 optional = false
-python-versions = "<4.0.0,>=3.7.1"
+python-versions = "<4.0.0,>=3.8.0"
 files = [
-    {file = "databricks_sql_connector-2.9.6-py3-none-any.whl", hash = "sha256:d830abf86e71d2eb83c6a7b7264d6c03926a8a83cec58541ddd6b83d693bde8f"},
-    {file = "databricks_sql_connector-2.9.6.tar.gz", hash = "sha256:e55f5b8ede8ae6c6f31416a4cf6352f0ac019bf6875896c668c7574ceaf6e813"},
+    {file = "databricks_sql_connector-4.0.0-py3-none-any.whl", hash = "sha256:798ebc740e992eaf435754510d1035872d3ebbc8c5cb597aa939217220463236"},
+    {file = "databricks_sql_connector-4.0.0.tar.gz", hash = "sha256:3634fe3d19ee4641cdf76a77854573d9fe234ccdebd20230aaf94053397bc693"},
 ]
 
 [package.dependencies]
-alembic = ">=1.0.11,<2.0.0"
 lz4 = ">=4.0.2,<5.0.0"
 numpy = [
-    {version = ">=1.16.6", markers = "python_version >= \"3.7\" and python_version < \"3.11\""},
-    {version = ">=1.23.4", markers = "python_version >= \"3.11\""},
+    {version = ">=1.16.6,<2.0.0", markers = "python_version >= \"3.8\" and python_version < \"3.11\""},
+    {version = ">=1.23.4,<2.0.0", markers = "python_version >= \"3.11\""},
 ]
 oauthlib = ">=3.1.0,<4.0.0"
 openpyxl = ">=3.0.10,<4.0.0"
-pandas = {version = ">=1.2.5,<3.0.0", markers = "python_version >= \"3.8\""}
-pyarrow = [
-    {version = ">=6.0.0", markers = "python_version >= \"3.7\" and python_version < \"3.11\""},
-    {version = ">=10.0.1", markers = "python_version >= \"3.11\""},
-]
+pandas = {version = ">=1.2.5,<2.3.0", markers = "python_version >= \"3.8\""}
 requests = ">=2.18.1,<3.0.0"
-sqlalchemy = ">=1.3.24,<2.0.0"
-thrift = ">=0.16.0,<0.17.0"
-urllib3 = ">=1.0"
+thrift = ">=0.16.0,<0.21.0"
+urllib3 = ">=1.26"
+
+[package.extras]
+pyarrow = ["pyarrow (>=14.0.1)"]
 
 [[package]]
 name = "db-dtypes"
@@ -6125,13 +6122,13 @@ xml = ["lxml (>=4.8.0)"]
 
 [[package]]
 name = "pandas-gbq"
-version = "0.26.1"
+version = "0.27.0"
 description = "Google BigQuery connector for pandas"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pandas_gbq-0.26.1-py2.py3-none-any.whl", hash = "sha256:327ba959fb9520356f32294fa6028a6fbeccbb4c64d09658363140f7303599a8"},
-    {file = "pandas_gbq-0.26.1.tar.gz", hash = "sha256:8c5a4478ca822e857bcc853a5e8999273a147ffffbc44a38dde93fd9c4f240bb"},
+    {file = "pandas_gbq-0.27.0-py2.py3-none-any.whl", hash = "sha256:cb1fbedbefc4a92c4f96aa3ba2b5d56fddf25e651b39cd5ae11fa2158db79bc1"},
+    {file = "pandas_gbq-0.27.0.tar.gz", hash = "sha256:6c19b1d84bc43ba8c54e30b9fc7c120755b5b3cf6c0c0f46fdef09bc244f3222"},
 ]
 
 [package.dependencies]
@@ -7991,12 +7988,12 @@ files = [
 
 [[package]]
 name = "thrift"
-version = "0.16.0"
+version = "0.20.0"
 description = "Python bindings for the Apache Thrift RPC system"
 optional = false
 python-versions = "*"
 files = [
-    {file = "thrift-0.16.0.tar.gz", hash = "sha256:2b5b6488fcded21f9d312aa23c9ff6a0195d0f6ae26ddbd5ad9e3e25dfc14408"},
+    {file = "thrift-0.20.0.tar.gz", hash = "sha256:4dd662eadf6b8aebe8a41729527bd69adf6ceaa2a8681cbef64d1273b3e8feba"},
 ]
 
 [package.dependencies]
@@ -8593,4 +8590,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "82d7083a6038c9bbd8fb58950661eea6aafa118fd954b688d7712b70b11e8726"
+content-hash = "db3b7c79cd26f496046914dbf3e3c264ae5d3dfc28340b1e6601824c20db3eac"
