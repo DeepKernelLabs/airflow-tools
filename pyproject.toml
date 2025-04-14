@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "airflow-tools"
-version = "0.12.0"
+version = "0.13.0"
 
 description = ""
 authors = ["Biel Llobera <biel_llobera@dkl.digital>"]
@@ -9,7 +9,7 @@ include = ["src/airflow_tools"]
 
 [tool.poetry.dependencies]
 airflow-provider-duckdb = "^0.2.0"
-apache-airflow = ">=2.8.0,<=2.9.1"
+apache-airflow = "^2.8.0"
 apache-airflow-providers-amazon = "^9.0.0"
 apache-airflow-providers-google = "^10.23.0"
 apache-airflow-providers-microsoft-azure = "^8.0.0"
