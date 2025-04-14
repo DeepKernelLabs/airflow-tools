@@ -24,7 +24,7 @@ Collection of Operators, Hooks and utility functions aimed at facilitating ELT p
 
 ## Overview
 
-This is an opinionated library focused on ELT, which means that our goal is to facilitate loading data from various data sources into a data lake, as well as loading from a data lake to a data warehouse and running transformations inside a data warehouse. 
+This is an opinionated library focused on ELT, which means that our goal is to facilitate loading data from various data sources into a data lake, as well as loading from a data lake to a data warehouse and running transformations inside a data warehouse.
 
 Airflow's operators notoriously suffer from an NxM problem, where if you have N data sources and M destinations you end up with NxM different operators (FTPToS3, S3ToFTP, PostgresToS3, FTPToPostgres etc.). We aim to mitigate this issue in two ways:
 
@@ -69,8 +69,8 @@ HttpToFilesystem(
 
 ## Sensors
 
-### Filesystem (generic) File Sensor 
-This sensor checks if a file exists in a generic filesystem. 
+### Filesystem (generic) File Sensor
+This sensor checks if a file exists in a generic filesystem.
 Type of filesystem is determined by the connection type.
 
 Current supported filesystem connections are (`conn_type` parameter):
@@ -96,7 +96,7 @@ FilesystemFileSensor(
     filesystem_conn_id='test_s3_filesystem',
     source_path='data_lake/2023/10/01/test.csv',
     poke_interval=60,
-    timeout=300, 
+    timeout=300,
 )
 ```
 
