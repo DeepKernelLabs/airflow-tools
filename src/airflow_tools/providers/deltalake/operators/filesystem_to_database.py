@@ -55,6 +55,7 @@ class FilesystemToDatabaseOperator(BaseOperator):
         ] = 'append',
         metadata: typing.Optional[typing.Dict[str, str]] = None,
         include_source_path: bool = True,
+        source_path_column_in_uppercase: bool = True,
         *args,
         **kwargs,
     ) -> None:
@@ -71,6 +72,7 @@ class FilesystemToDatabaseOperator(BaseOperator):
         self.table_aggregation_type = table_aggregation_type
         self.metadata = metadata or {'_DS': '{{ ds }}'}
         self.include_source_path = include_source_path
+        self.source_path_column_in_uppercase = source_path_column_in_uppercase
 
     def execute(self, context):
         logger.info(f'Create connection for filesystem ({self.filesystem_conn_id})')
@@ -106,8 +108,9 @@ class FilesystemToDatabaseOperator(BaseOperator):
                     df[key] = self._convert_to_datetime(df[key])
                     
             if self.include_source_path:
-                df['_LOADED_FROM'] = blob_path
-                df['_LOADED_FROM'] = df['_LOADED_FROM'].astype('string')
+                source_path_column = '_LOADED_FROM' if self.source_path_column_in_uppercase else '_loaded_from'
+                df[source_path_column] = blob_path
+                df[source_path_column] = df[source_path_column].astype('string')
 
             df.to_sql(
                 name=self.db_table,
