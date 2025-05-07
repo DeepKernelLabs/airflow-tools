@@ -54,6 +54,7 @@ class FilesystemToDatabaseOperator(BaseOperator):
             Literal['append', 'fail', 'replace']
         ] = 'append',
         metadata: typing.Optional[typing.Dict[str, str]] = None,
+        metadata_columns_in_uppercase: bool = True,
         include_source_path: bool = True,
         *args,
         **kwargs,
@@ -70,6 +71,7 @@ class FilesystemToDatabaseOperator(BaseOperator):
         self.source_format_options = source_format_options
         self.table_aggregation_type = table_aggregation_type
         self.metadata = metadata or {'_DS': '{{ ds }}'}
+        self.metadata_columns_in_uppercase = metadata_columns_in_uppercase
         self.include_source_path = include_source_path
 
     def execute(self, context):
@@ -99,6 +101,8 @@ class FilesystemToDatabaseOperator(BaseOperator):
             self._check_and_fix_column_differences(df, self.db_table, engine)   
 
             for key, value in self.metadata.items():
+                key = key.upper() if self.metadata_columns_in_uppercase else key.lower()
+
                 df[key] = value
                 
                 if key.startswith('_'):
@@ -106,8 +110,9 @@ class FilesystemToDatabaseOperator(BaseOperator):
                     df[key] = self._convert_to_datetime(df[key])
                     
             if self.include_source_path:
-                df['_LOADED_FROM'] = blob_path
-                df['_LOADED_FROM'] = df['_LOADED_FROM'].astype('string')
+                source_path_column = '_LOADED_FROM' if self.metadata_columns_in_uppercase else '_loaded_from'
+                df[source_path_column] = blob_path
+                df[source_path_column] = df[source_path_column].astype('string')
 
             df.to_sql(
                 name=self.db_table,
