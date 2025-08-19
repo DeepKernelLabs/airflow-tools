@@ -26,6 +26,7 @@ def test_http_to_data_lake(dag, s3_bucket, s3_resource, monkeypatch):
         HttpToDataLake(
             task_id='test_http_to_data_lake',
             http_conn_id='http_test',
+            headers={'x-api-key': 'reqres-free-v1'},
             data_lake_conn_id='data_lake_test',
             data_lake_path=s3_bucket + '/source1/entity1/{{ ds }}/',
             endpoint='/api/users',
@@ -64,6 +65,7 @@ def test_http_to_data_lake_response_format_jsonl_with_jmespath_expression(
     http_to_data_lake_op = HttpToDataLake(
         task_id='test_http_to_data_lake',
         http_conn_id='http_test',
+        headers={'x-api-key': 'reqres-free-v1'},
         data_lake_conn_id='data_lake_test',
         data_lake_path=s3_bucket + '/source1/entity1/{{ ds }}/',
         endpoint='/api/users',
@@ -83,6 +85,7 @@ def test_http_to_data_lake_response_format_jsonl_with_jmespath_expression(
         response_origin_no_list = HttpToDataLake(
             task_id='test_http_to_data_lake',
             http_conn_id='http_test',
+            headers={'x-api-key': 'reqres-free-v1'},
             data_lake_conn_id='data_lake_test',
             data_lake_path=s3_bucket + '/source1/entity1/{{ ds }}/',
             endpoint='/api/users/2',
@@ -110,6 +113,7 @@ def test_http_to_data_lake_response_format_jsonl_without_jmespath_expression(
         http_to_data_lake_op = HttpToDataLake(
             task_id='test_http_to_data_lake',
             http_conn_id='http_test',
+            headers={'x-api-key': 'reqres-free-v1'},
             data_lake_conn_id='data_lake_test',
             data_lake_path=s3_bucket + '/source1/entity1/{{ ds }}/',
             endpoint='/api/users',
@@ -164,6 +168,7 @@ def test_http_to_data_lake_response_format_json_with_jmespath_expression(
     http_to_data_lake_op = HttpToDataLake(
         task_id='test_http_to_data_lake',
         http_conn_id='http_test',
+        headers={'x-api-key': 'reqres-free-v1'},
         data_lake_conn_id='data_lake_test',
         data_lake_path=s3_bucket + '/source1/entity1/{{ ds }}/',
         endpoint='/api/users',
@@ -192,6 +197,7 @@ def test_http_to_data_lake_response_format_json_without_jmespath_expression(
     http_to_data_lake_op = HttpToDataLake(
         task_id='test_http_to_data_lake',
         http_conn_id='http_test',
+        headers={'x-api-key': 'reqres-free-v1'},
         data_lake_conn_id='data_lake_test',
         data_lake_path=s3_bucket + '/source1/entity1/{{ ds }}/',
         endpoint='/api/users',
@@ -218,6 +224,7 @@ def test_http_to_data_lake_response_wrong_format(s3_bucket, monkeypatch):
         http_to_data_lake_op = HttpToDataLake(
             task_id='test_http_to_data_lake',
             http_conn_id='http_test',
+            headers={'x-api-key': 'reqres-free-v1'},
             data_lake_conn_id='data_lake_test',
             data_lake_path=s3_bucket + '/source1/entity1/{{ ds }}/',
             endpoint='/api/users',
@@ -250,6 +257,7 @@ def test_http_to_datalake_pagination_jsonl(dag, s3_bucket, s3_resource, monkeypa
         HttpToDataLake(
             task_id='test_http_to_data_lake',
             http_conn_id='http_test',
+            headers={'x-api-key': 'reqres-free-v1'},
             data_lake_conn_id='data_lake_test',
             data_lake_path=s3_bucket + '/source1/entity1/{{ ds }}/',
             endpoint='/api/users',
@@ -305,6 +313,7 @@ def test_http_to_datalake_pagination_json(dag, s3_bucket, s3_resource, monkeypat
         HttpToDataLake(
             task_id='test_http_to_data_lake',
             http_conn_id='http_test',
+            headers={'x-api-key': 'reqres-free-v1'},
             data_lake_conn_id='data_lake_test',
             data_lake_path=s3_bucket + '/source1/entity1/{{ ds }}/',
             endpoint='/api/users',
@@ -353,6 +362,7 @@ def test_http_to_data_lake_check_one_page_data_is_duplicated(
         HttpToDataLake(
             task_id='test_http_to_data_lake',
             http_conn_id='http_test',
+            headers={'x-api-key': 'reqres-free-v1'},
             data_lake_conn_id='data_lake_test',
             data_lake_path=s3_bucket + '/source1/entity1/{{ ds }}/',
             endpoint='/api/users',
