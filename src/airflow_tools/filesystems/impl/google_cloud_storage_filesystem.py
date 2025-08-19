@@ -15,6 +15,8 @@ class GCSFilesystem(FilesystemProtocol):
 
     def write(self, data: str | bytes | BytesIO, path: str):
         bucket_name, object_name = _get_bucket_and_key_name(path)
+        if isinstance(data, BytesIO):
+            data = data.getvalue()
         self.hook.upload(bucket_name, object_name, data=data)
 
     def delete_file(self, path: str):
