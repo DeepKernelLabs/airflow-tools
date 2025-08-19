@@ -21,7 +21,7 @@ def test_http_to_data_lake(dag, s3_bucket, s3_resource, monkeypatch):
             {
                 'conn_type': 'http',
                 'host': 'https://reqres.in',
-                'extras': {
+                'extra': {
                     'headers': {'x-api-key': 'reqres-free-v1'}
                 }
             }
@@ -63,7 +63,7 @@ def test_http_to_data_lake_response_format_jsonl_with_jmespath_expression(
             {
                 'conn_type': 'http',
                 'host': 'https://reqres.in',
-                'extras': {
+                'extra': {
                     'headers': {'x-api-key': 'reqres-free-v1'}
                 }
             }
@@ -111,7 +111,7 @@ def test_http_to_data_lake_response_format_jsonl_without_jmespath_expression(
             {
                 'conn_type': 'http',
                 'host': 'https://reqres.in',
-                'extras': {
+                'extra': {
                     'headers': {'x-api-key': 'reqres-free-v1'}
                 }
             }
@@ -169,7 +169,7 @@ def test_http_to_data_lake_response_format_json_with_jmespath_expression(
             {
                 'conn_type': 'http',
                 'host': 'https://reqres.in',
-                'extras': {
+                'extra': {
                     'headers': {'x-api-key': 'reqres-free-v1'}
                 }
             }
@@ -200,7 +200,7 @@ def test_http_to_data_lake_response_format_json_without_jmespath_expression(
             {
                 'conn_type': 'http',
                 'host': 'https://reqres.in',
-                'extras': {
+                'extra': {
                     'headers': {'x-api-key': 'reqres-free-v1'}
                 }
             }
@@ -228,7 +228,7 @@ def test_http_to_data_lake_response_wrong_format(s3_bucket, monkeypatch):
             {
                 'conn_type': 'http',
                 'host': 'https://reqres.in',
-                'extras': {
+                'extra': {
                     'headers': {'x-api-key': 'reqres-free-v1'}
                 }
             }
@@ -263,7 +263,7 @@ def test_http_to_datalake_pagination_jsonl(dag, s3_bucket, s3_resource, monkeypa
             {
                 'conn_type': 'http',
                 'host': 'https://reqres.in',
-                'extras': {
+                'extra': {
                     'headers': {'x-api-key': 'reqres-free-v1'}
                 }
             }
@@ -321,7 +321,7 @@ def test_http_to_datalake_pagination_json(dag, s3_bucket, s3_resource, monkeypat
             {
                 'conn_type': 'http',
                 'host': 'https://reqres.in',
-                'extras': {
+                'extra': {
                     'headers': {'x-api-key': 'reqres-free-v1'}
                 }
             }
@@ -372,7 +372,7 @@ def test_http_to_data_lake_check_one_page_data_is_duplicated(
             {
                 'conn_type': 'http',
                 'host': 'https://reqres.in',
-                'extras': {
+                'extra': {
                     'headers': {'x-api-key': 'reqres-free-v1'}
                 }
             }
@@ -407,7 +407,7 @@ def test_http_to_data_lake_with_success_file(dag, s3_bucket, s3_resource, monkey
             {
                 'conn_type': 'http',
                 'host': 'https://reqres.in',
-                'extras': {
+                'extra': {
                     'headers': {'x-api-key': 'reqres-free-v1'}
                 }
             }
@@ -470,7 +470,7 @@ def test_http_to_filesystem_with_transformation(
             {
                 'conn_type': 'http',
                 'host': 'https://reqres.in',
-                'extras': {
+                'extra': {
                     'headers': {'x-api-key': 'reqres-free-v1'}
                 }
             }
@@ -529,7 +529,7 @@ def test_http_to_filesystem_with_transformation_and_extra_args(
             {
                 'conn_type': 'http',
                 'host': 'https://reqres.in',
-                'extras': {
+                'extra': {
                     'headers': {'x-api-key': 'reqres-free-v1'}
                 }
             }
@@ -577,7 +577,7 @@ def test_http_to_filesystem_with_transformation_error_no_function(
             {
                 'conn_type': 'http',
                 'host': 'https://reqres.in',
-                'extras': {
+                'extra': {
                     'headers': {'x-api-key': 'reqres-free-v1'}
                 }
             }
@@ -612,7 +612,7 @@ def test_http_to_filesystem_with_transformation_error_extra_params_no_function(
             {
                 'conn_type': 'http',
                 'host': 'https://reqres.in',
-                'extras': {
+                'extra': {
                     'headers': {'x-api-key': 'reqres-free-v1'}
                 }
             }
