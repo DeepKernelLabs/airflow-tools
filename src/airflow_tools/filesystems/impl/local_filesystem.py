@@ -19,6 +19,11 @@ class LocalFilesystem(FilesystemProtocol):
             data = data.encode()
         elif isinstance(data, BytesIO):
             data = data.getvalue()
+
+        # NOTE: Make the experience similar to a bucket
+        folder_path = (Path(self.hook.get_path()) / path).parent
+        folder_path.mkdir(parents=True, exist_ok=True)
+        
         (Path(self.hook.get_path()) / path).write_bytes(data)
 
     def delete_file(self, path: str):
