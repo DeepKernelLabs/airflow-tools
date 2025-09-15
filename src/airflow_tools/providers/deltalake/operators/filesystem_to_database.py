@@ -4,6 +4,8 @@ import sys
 import typing
 
 import pandas as pd
+import urllib.parse
+
 from airflow.hooks.base import BaseHook
 from airflow.models import BaseOperator
 from sqlalchemy import create_engine, inspect, engine, Integer, Float, String, DateTime, Boolean
@@ -81,10 +83,10 @@ class FilesystemToDatabaseOperator(BaseOperator):
         )
 
         logger.info(f'Create SQLAlchemy engine with connection_id {self.database_conn_id}')
-        engine = create_engine(
-            BaseHook.get_connection(self.database_conn_id).get_hook().get_uri()
-        )
-        
+        conn = BaseHook.get_connection(self.database_conn_id)
+        password_encoded = urllib.parse.quote_plus(conn.password)
+        engine = create_engine(f'postgresql://{conn.login}:{password_encoded}@{conn.host}:{conn.port}/{conn.schema}')
+
         for blob_path in filesystem.list_files(prefix=self.filesystem_path):
 
             if not blob_path.endswith(
