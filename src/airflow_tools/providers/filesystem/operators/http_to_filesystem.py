@@ -1,8 +1,15 @@
+from __future__ import annotations
+
 import json
 import logging
 import uuid
 from io import BytesIO, StringIO
-from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, Protocol
+from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, Protocol, Type
+
+try:
+    from typing import TypedDict  # Python 3.11+
+except ImportError:
+    from typing_extensions import TypedDict  # Python 3.8–3.10
 
 import jmespath
 import pandas as pd
@@ -296,37 +303,186 @@ class HttpToFilesystem(BaseOperator):
                     f'Unknown source_format/save_format: {self.source_format}'
                 )
 
+class RequestSpec(TypedDict, total=False):
+    """User-provided per-request overrides (all keys optional)."""
+    endpoint: str
+    method: str
+    data: Any
+    headers: dict[str, str]
+    auth_type: Type['AuthBase'] | None
+    jmespath_expression: str | None
+    save_format: 'SaveFormat'
+    source_format: 'SaveFormat'
+    compression: 'CompressionOptions' | None
+
+class RequestState(TypedDict):
+    """Fully-resolved runtime state (all keys present)."""
+    endpoint: str | None
+    method: str
+    data: Any
+    headers: dict[str, str] | None
+    auth_type: Type['AuthBase'] | None
+    jmespath_expression: str | None
+    save_format: 'SaveFormat'
+    source_format: 'SaveFormat'
+    compression: 'CompressionOptions' | None
 
 class MultiHttpToFilesystem(HttpToFilesystem):
-    """Inherits from HttpToFilesystem but allows calling the same endpoint with multiple parameters and
-    joining the results in a single entity"""
+    """
+    Execute multiple HTTP requests in a single task and save each response as a separate file.
+    
+    This operator extends HttpToFilesystem to process multiple requests efficiently
+    while reducing Airflow task overhead. Each request can override base configuration
+    (endpoint, method, headers, data, etc.) and results are saved as sequential files.
+    
+    Args:
+        multi_requests: List of request specifications. Each item can override
+                       any base operator parameter for that specific request.
+    
+    Example:
+        MultiHttpToFilesystem(
+            http_conn_id='api_connection',
+            base_endpoint='/api/v1',
+            headers={'Authorization': 'Bearer token'},
+            multi_requests=[
+                {'endpoint': '/users/1'},
+                {'endpoint': '/users/2', 'method': 'POST', 'data': {...}},
+                {'endpoint': '/orders', 'headers': {'Custom': 'Header'}}
+            ]
+        )
+    
+    Notes:
+        - Pagination is not supported
+        - Requests are executed sequentially within the task
+        - Per-request values override base configuration with dict merging for
+          headers/data, and replacement for other parameters
+        - All validations are re-applied after each request configuration
+    """
 
-    template_fields = HttpToFilesystem.template_fields + ['multi_data']
+    template_fields = HttpToFilesystem.template_fields + ['multi_requests']
     template_fields_renderers = {
         **HttpToFilesystem.template_fields_renderers,
-        'multi_data': 'py',
+        'multi_requests': 'py',
     }
 
-    def __init__(
-        self,
-        multi_data: list[dict],
-        *args,
-        **kwargs,
-    ):
-        # Check pre-conditions
+    # Allowed keys come from the TypedDict (so static + runtime stay in sync)
+    _ALLOWED_KEYS = set(RequestSpec.__annotations__.keys())
+
+    def __init__(self, *, multi_requests: list[RequestSpec], **kwargs):
+        # No pagination in this multi operator
         if kwargs.get('pagination_function') is not None:
             raise ValueError('Pagination is not supported in MultiHttpToFilesystem')
-        if kwargs.get('data') is None:
-            raise ValueError('Data must be provided for MultiHttpToFilesystem')
-        super().__init__(*args, **kwargs)
-        self.multi_data = multi_data
 
-    def execute(self, context):
-        self.base_data = self.data
-        for i, record in enumerate(self.multi_data, 1):
+        if not multi_requests or not isinstance(multi_requests, list):
+            raise ValueError('multi_requests must be a non-empty list of RequestSpec')
+
+        super().__init__(**kwargs)
+        self.multi_requests: list[RequestSpec] = multi_requests
+
+
+    def _capture_request_state(self) -> RequestState:
+        return {
+            'endpoint': self.endpoint,
+            'method': self.method,
+            'data': self.data,
+            'headers': self.headers,
+            'auth_type': self.auth_type,
+            'jmespath_expression': self.jmespath_expression,
+            'save_format': self.save_format,
+            'source_format': self.source_format,
+            'compression': self.compression,
+        }
+
+    def _restore_request_state(self, state: RequestState) -> None:
+        self.endpoint = state['endpoint']
+        self.method = state['method']
+        self.data = state['data']
+        self.headers = state['headers']
+        self.auth_type = state['auth_type']
+        self.jmespath_expression = state['jmespath_expression']
+        self.save_format = state['save_format']
+        self.source_format = state['source_format']
+        self.compression = state['compression']
+
+    @staticmethod
+    def _merge_or_replace(base_val: Any, override_val: Any) -> Any:
+        # Shallow-merge dicts; otherwise replace.
+        if isinstance(base_val, dict) and isinstance(override_val, dict):
+            return {**base_val, **override_val}
+        return override_val
+
+    def _apply_request_overrides(self, spec: RequestSpec, base: RequestState) -> None:
+        """
+            Apply per-request configuration overrides on top of base operator settings.
+    
+        Args:
+            spec: Request-specific configuration overrides
+            base: Base operator configuration to restore after request
+            
+        Raises:
+            ValueError: If spec contains unknown keys or invalid combinations
+        """
+
+        # Validate allowed override keys
+        unknown = set(spec.keys()) - self._ALLOWED_KEYS
+        if unknown:
+            raise ValueError(f'Unknown keys in multi_requests item: {sorted(unknown)}')
+
+        # Simple fields
+        self.endpoint = spec.get('endpoint', base['endpoint'])
+        self.method = spec.get('method', base['method'])
+        self.auth_type = spec.get('auth_type', base['auth_type'])
+        self.jmespath_expression = spec.get('jmespath_expression', base['jmespath_expression'])
+
+        # Dict-like merge/replace behavior
+        if 'headers' in spec:
+            self.headers = self._merge_or_replace(base['headers'], spec['headers'])
+        else:
+            self.headers = base['headers']
+
+        if 'data' in spec:
+            self.data = self._merge_or_replace(base['data'], spec['data'])
+        else:
+            self.data = base['data']
+
+        # Formats & compression
+        self.save_format = spec.get('save_format', base['save_format'])
+        self.source_format = spec.get('source_format', base['source_format'])
+        self.compression = spec.get('compression', base['compression'])
+
+        # Validate this request's final state
+        self._validate_current_request_state()
+
+    def _validate_current_request_state(self) -> None:
+        # Re-apply critical validations that may be affected by per-request overrides
+        if (
+            self.save_format in self.binary_response_source_format
+            and self.compression is not None
+        ):
+            raise ValueError(
+                f'Compression is not supported for binary response save formats: '
+                f'{self.binary_response_source_format}'
+            )
+        if self.data_transformation and not callable(self.data_transformation):
+            raise ValueError('data_transformation must be a callable')
+        if self.data_transformation is None and self.source_format != self.save_format:
+            raise ValueError(
+                'data_transformation must be provided if source_format differs from save_format'
+            )
+        if self.data_transformation_kwargs and self.data_transformation is None:
+            raise ValueError(
+                'data_transformation must be provided if data_transformation_kwargs is provided'
+            )
+
+    def execute(self, context) -> Any:
+        base = self._capture_request_state()
+        for i, spec in enumerate(self.multi_requests, start=1):
             self.file_number_start = i
-            self.data = {**record, **self.base_data}
-            super().execute(context)
+            try:
+                self._apply_request_overrides(spec, base)
+                super().execute(context)
+            finally:
+                self._restore_request_state(base)
 
 
 def list_to_jsonl(data: list[dict], compression: 'CompressionOptions') -> BytesIO:
