@@ -65,11 +65,3 @@ skip-string-normalization = true
 
 [tool.mypy]
 allow_redefinition = true
-
-[tool.uv]
-keyring-provider = "subprocess"
-
-[[tool.uv.index]]
-name = "trading-platform-python"
-url = "https://oauth2accesstoken@europe-southwest1-python.pkg.dev/trading-platform-dev-468710/trading-platform-esw1-dev-python/simple"
-publish-url = "https://oauth2accesstoken@europe-southwest1-python.pkg.dev/trading-platform-dev-468710/trading-platform-esw1-dev-python"
