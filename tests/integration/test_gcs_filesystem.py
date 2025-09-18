@@ -1,24 +1,29 @@
 import uuid
-import pytest 
 
+import pytest
 from airflow.hooks.base import BaseHook
 
-from airflow_tools.filesystems.filesystem_factory import FilesystemFactory
-from airflow_tools.filesystems.impl.google_cloud_storage_filesystem import GCSFilesystem
+from airflow_toolkit.filesystems.filesystem_factory import FilesystemFactory
+from airflow_toolkit.filesystems.impl.google_cloud_storage_filesystem import (
+    GCSFilesystem,
+)
 
 
-@pytest.mark.skip(reason="This test is better to run it manually, for the moment we don't want to use it against GCP.")
+@pytest.mark.skip(
+    reason="This test is better to run it manually, for the moment we don't want to use it against GCP."
+)
 def test_gcs_filesystem():
     """Expects an environment variable set to a GCS test bucket.
-    AIRFLOW_CONN_GCP_DATA_LAKE_TEST='{"conn_type": "google_cloud_platform", "extra": {"key_path": "/.../keyfile.json"}}'"""
+    AIRFLOW_CONN_GCP_DATA_LAKE_TEST='{"conn_type": "google_cloud_platform", "extra": {"key_path": "/.../keyfile.json"}}'
+    """
     conn = BaseHook.get_connection("gcp_data_lake_test")
     gcs_fs = FilesystemFactory.get_data_lake_filesystem(conn)
 
     assert isinstance(gcs_fs, GCSFilesystem)
 
-    test_prefix = f'data-lake-test-ksa-insights/tests/{uuid.uuid4()}/'
-    test_file_path = f'{test_prefix}foo.txt'
-    test_text = 'Hello world!'
+    test_prefix = f"data-lake-test-ksa-insights/tests/{uuid.uuid4()}/"
+    test_file_path = f"{test_prefix}foo.txt"
+    test_text = "Hello world!"
     gcs_fs.write(test_text, test_file_path)
 
     assert gcs_fs.check_file(test_file_path)

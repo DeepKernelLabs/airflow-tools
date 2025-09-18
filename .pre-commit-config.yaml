@@ -12,29 +12,18 @@ repos:
   hooks:
     - id: ruff
       args: [ --fix ]
+    - id: ruff-format
 
-- repo: https://github.com/psf/black
-  rev: 24.10.0
+- repo: https://github.com/astral-sh/uv-pre-commit
+  rev: 0.8.18
   hooks:
-  - id: black
-
-- repo: https://github.com/pycqa/isort
-  rev: 5.13.2
-  hooks:
-    - id: isort
-      name: isort (python)
-
-- repo: https://github.com/python-poetry/poetry
-  rev: '1.8.0'
-  hooks:
-    - id: poetry-check
-    - id: poetry-lock
+    - id: uv-lock
 
 - repo: local
   hooks:
     - id: update-version
       name: 'Update version'
-      entry: poetry run python scripts/update_version.py
+      entry: uv run python scripts/update_version.py
       language: system
       always_run: true
       pass_filenames: false

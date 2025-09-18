@@ -10,11 +10,11 @@ logger = logging.getLogger(__file__)
 @pytest.fixture
 def virtual_environment(tmp_path):
     """Fixture to create a virtual environment, yield its path. Clean up is performed by the tmp_path fixture."""
-    tmpdir = tmp_path / 'venv'
+    tmpdir = tmp_path / "venv"
     tmpdir.mkdir()
     builder = venv.EnvBuilder(with_pip=True, system_site_packages=False)
     builder.create(tmpdir)
-    logger.info(f'Created temporary virtualenv in {tmpdir}')
+    logger.info(f"Created temporary virtualenv in {tmpdir}")
 
     yield tmpdir
 
@@ -41,27 +41,27 @@ def test_import_package(virtual_environment, project_path):
             universal_newlines=True,
             stderr=subprocess.STDOUT,
         )
-        assert 'airflow_tools.providers.package:get_provider_info' in result
+        assert "airflow_toolkit.providers.package:get_provider_info" in result
         result = subprocess.check_output(
             [
                 f"{venv_path}/bin/python",
                 "-c",
-                "from airflow.providers_manager import ProvidersManager; pm = ProvidersManager(); print(pm.providers['airflow-tools'].data['package-name'])",
+                "from airflow.providers_manager import ProvidersManager; pm = ProvidersManager(); print(pm.providers['airflow-toolkit'].data['package-name'])",
             ],
             universal_newlines=True,
             stderr=subprocess.STDOUT,
         )
-        assert 'airflow-tools' in result
+        assert "airflow-toolkit" in result
         result = subprocess.check_output(
             [
                 f"{venv_path}/bin/python",
                 "-c",
-                "from airflow_tools.providers.filesystem.operators.http_to_filesystem import HttpToFilesystem; print('Import Ok')",
+                "from airflow_toolkit.providers.filesystem.operators.http_to_filesystem import HttpToFilesystem; print('Import Ok')",
             ],
             universal_newlines=True,
             stderr=subprocess.STDOUT,
         )
-        assert 'Import Ok' in result
+        assert "Import Ok" in result
 
         # TODO: When we have custom hooks, check their installation is correct by using airflow.providers_manager.ProvidersManager.hooks
     except subprocess.CalledProcessError as e:

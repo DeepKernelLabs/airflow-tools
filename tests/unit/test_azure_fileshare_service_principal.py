@@ -1,7 +1,7 @@
 import pytest
 from azure.storage.fileshare import ShareClient
 
-from airflow_tools.providers.azure.hooks.azure_file_share import (
+from airflow_toolkit.providers.azure.hooks.azure_file_share import (
     AzureFileShareServicePrincipalHook,
 )
 
@@ -13,11 +13,11 @@ LOGIN = "some-login-value"
 PASSWORD = "some-password-value"
 LIST_DIRECTORIES_AND_FILES_EXPECTED_RESULT = [
     {
-        'name': 'Folder-test-name',
-        'last_modified': None,
-        'etag': None,
-        'server_encrypted': None,
-        'metadata': None,
+        "name": "Folder-test-name",
+        "last_modified": None,
+        "etag": None,
+        "server_encrypted": None,
+        "metadata": None,
     }
 ]
 
@@ -25,7 +25,7 @@ LIST_DIRECTORIES_AND_FILES_EXPECTED_RESULT = [
 @pytest.fixture
 def env_var_setup(monkeypatch):
     monkeypatch.setenv(
-        'AIRFLOW_CONN_AZURE_FILESHARE_SP',
+        "AIRFLOW_CONN_AZURE_FILESHARE_SP",
         f'''{{"conn_type": "azure_file_share_sp","host": "{HOST}", "login": "{LOGIN}","password": "{PASSWORD}","extra":{{"tenant_id": "{TENANT_ID}", "share_name": "{SHARE_NAME}", "protocol": "{PROTOCOL}"}}}}''',
     )
 
@@ -34,7 +34,7 @@ def env_var_setup(monkeypatch):
 
 def test_azure_fileshare_service_principal(env_var_setup, monkeypatch):
     monkeypatch.setattr(
-        'azure.storage.fileshare.ShareClient.list_directories_and_files',
+        "azure.storage.fileshare.ShareClient.list_directories_and_files",
         lambda self: LIST_DIRECTORIES_AND_FILES_EXPECTED_RESULT,
     )
 

@@ -1,4 +1,4 @@
-# Airflow Tools
+# Airflow Toolkit
 <div align="center">
   <!-- Logo -->
   <img src="./media/images/logo.webp" alt="logo" width="400"/>
@@ -7,8 +7,8 @@
   <br/>
 
   <!-- Badges -->
-  <a href="https://github.com/DeepKernelLabs/airflow-tools/actions?query=branch%3Amain">
-    <img src="https://github.com/DeepKernelLabs/airflow-tools/actions/workflows/lint-and-test.yml/badge.svg?branch=main" alt="Badge 1"/>
+  <a href="https://github.com/DeepKernelLabs/airflow-toolkit/actions?query=branch%3Amain">
+    <img src="https://github.com/DeepKernelLabs/airflow-toolkit/actions/workflows/lint-and-test.yml/badge.svg?branch=main" alt="Badge 1"/>
   </a>
   <a href="https://opensource.org/licenses/Apache-2.0">
     <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="Badge 2"/>
@@ -150,7 +150,7 @@ if you are using environment variables.)
 
 Default message will have the format below:
 
-![image](https://github.com/DeepKernelLabs/airflow-tools/assets/152852247/52a5bf95-21bc-4c3b-8093-79953c0c5d61)
+![image](https://github.com/DeepKernelLabs/airflow-toolkit/assets/152852247/52a5bf95-21bc-4c3b-8093-79953c0c5d61)
 
 But you can custom this message providing the below parameters:
 
@@ -158,7 +158,7 @@ But you can custom this message providing the below parameters:
 * **_blocks (dict)[optional]:_** you can provide your custom slack blocks for your message.
 * **_include_blocks (bool)[optional]:_** indicates if the default block have to be used. If you provide your own blocks will be ignored.
 * **_source (typing.Literal['DAG', 'TASK'])[optional]:_** source of the failure (dag or task). Default: `DAG`.
-* **_image_url: (str)[optional]_** image url for you notification (`accessory`). You can use `AIRFLOW_TOOLS__SLACK_NOTIFICATION_IMG_URL` instead.
+* **_image_url: (str)[optional]_** image url for you notification (`accessory`). You can use `AIRFLOW_TOOLKIT__SLACK_NOTIFICATION_IMG_URL` instead.
 
 ##### Example of use in a Dag
 
@@ -168,7 +168,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 
 from airflow.operators.bash import BashOperator
-from airflow_tools.notifications.slack.webhook import (
+from airflow_toolkit.notifications.slack.webhook import (
     dag_failure_slack_notification_webhook,    # <--- IMPORT
 )
 
